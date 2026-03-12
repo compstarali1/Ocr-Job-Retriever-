@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=0.7" />
+<title>Asset Manager Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+  :root { --brand:#0056b3; --accent:#28a745; --bg:#eef2f7; --pink:#ec4899; }
+  body{margin:0;font-family:sans-serif;background:var(--bg);padding:10px;color:#333;}
+  header{background:linear-gradient(135deg,#0056b3,#003f80);color:#fff;padding:20px;text-align:center;border-radius:12px;margin-bottom:15px;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+  main{max-width:1150px;margin:0 auto;background:#fff;padding:25px;border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,0.1);}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+  input[type=file]{padding:8px;border:1px solid #ccc;border-radius:8px;background:#fff;}
+  button{border:none;border-radius:12px;font-weight:700;cursor:pointer;padding:14px 20px;color:#fff;transition:0.2s;box-shadow:0 5px 0 rgba(0,0,0,0.2);}
+  button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,0.2);}
+  .primary{background:var(--accent);}
+  #openOCRScanner{background:var(--pink);}
+  .small{background:#3b82f6;font-size:0.85rem;padding:10px 15px;}
+  .assetGrid{display:flex;flex-wrap:wrap;gap:15px;margin-top:20px;}
+  .assetBtn{min-width:160px;background:#10b981;font-size:1.1rem;}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:15px;}
+  .modal.show{display:flex;}
+  .modalCard{width:100%;max-width:1100px;height:92vh;background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;}
+  .modalHeader{padding:18px;background:#f1f5f9;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;}
+  .modalBody{padding:25px;overflow-y:auto;flex:1;}
+  .thumbBox{display:inline-block;margin:8px;position:relative;border:1px solid #ddd;padding:5px;border-radius:8px;}
+  .thumb{width:130px;height:90px;object-fit:cover;display:block;border-radius:4px;}
+  .remove-btn{position:absolute;top:-5px;right:-5px;background:red;color:white;border-radius:50%;width:24px;height:24px;cursor:pointer;border:none;font-weight:bold;}
+  #ocrTarget{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:80px;border:4px solid var(--pink);box-shadow:0 0 20px var(--pink);pointer-events:none;z-index:10;}
+  video{background:#000;border-radius:10px;}
+</style>
+</head>
+<body>
+
+<header><strong>Service Engineer — Asset Visual Manager & OCR</strong></header>
+
+<main>
+  <div class="controls">
+    <input id="excelInput" type="file" accept=".xlsx,.xls" />
+    <button id="extractBtn" class="primary" disabled>Extract Excel</button>
+    <button id="openOCRScanner">SCAN ASSET ID (PINK PING)</button>
+    <button id="exportAllBtn" class="small">Export .daf</button>
+    <button id="importDafBtn" class="small">Import .daf</button>
+    <button id="sendEmailBtn" class="small">Email Support</button>
+    <button id="clearAllBtn" class="small" style="background:#ef4444;">Clear All</button>
+  </div>
+  <div id="assetContainer"><p style="color:#666;">Load Excel file to begin...</p></div>
+</main>
+
+<!-- Report Modal -->
+<div id="assetModal" class="modal">
+  <div class="modalCard">
+    <div class="modalHeader">
+      <strong id="modalTitle" style="font-size:1.4rem;">Asset Details</strong>
+      <button id="closeAssetBtn" class="small" style="background:#64748b;">Close</button>
+    </div>
+    <div class="modalBody">
+      <div style="display:flex;gap:25px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:300px;">
+          <label><b>Asset Number</b></label>
+          <input id="assetId" style="width:100%;padding:12px;margin:10px 0;border:1px solid #ccc;border-radius:8px;font-size:1rem;">
+          <label><b>Description</b></label>
+          <textarea id="assetFullDesc" rows="4" style="width:100%;padding:12px;margin-top:10px;border:1px solid #ccc;border-radius:8px;font-size:1rem;"></textarea>
+          
+          <div style="margin-top:20px;padding:20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+            <strong>Attach Photo via Camera</strong>
+            <div style="margin-top:12px;display:flex;gap:10px;">
+              <button id="openCamera" class="small">Open Camera</button>
+              <button id="takePhoto" class="small" style="display:none;background:#22c55e;">Capture Photo</button>
+            </div>
+            <video id="cameraView" autoplay playsinline style="width:100%;display:none;margin-top:15px;"></video>
+          </div>
+        </div>
+        
+        <div style="flex:1;min-width:300px;">
+          <label><b>Engineer Job Report</b></label>
+          <textarea id="engineerReport" rows="10" style="width:100%;padding:12px;margin-top:10px;border:1px solid #ccc;border-radius:8px;font-size:1rem;" placeholder="Enter repair details..."></textarea>
+          <div style="margin-top:15px;display:flex;gap:10px;">
+            <button id="saveAssetBtn" class="primary" style="flex:1;">Save Data</button>
+            <button id="attachFromFilesBtn" class="small">Upload Files</button>
+          </div>
+        </div>
+      </div>
+      <hr style="margin:25px 0;border:0;border-top:1px solid #eee;">
+      <strong>Attachments & Evidence</strong> <span id="savedInfo" style="color:#666;">(0 files)</span>
+      <div id="attachments" style="display:flex;flex-wrap:wrap;margin-top:15px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OCR Scanning Modal -->
+<div id="ocrModal" class="modal">
+  <div class="modalCard" style="max-width:500px;height:auto;">
+    <div class="modalHeader"><strong>Real-Time Asset Scanner</strong><button id="closeOCR" class="small">Cancel</button></div>
+    <div class="modalBody" style="background:#000;padding:0;position:relative;height:450px;overflow:hidden;">
+      <video id="ocrCamera" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+      <div id="ocrTarget"></div>
+      <div style="position:absolute;bottom:20px;width:100%;text-align:center;color:#fff;background:rgba(0,0,0,0.5);padding:5px 0;">Align Asset Number in Pink Box</div>
+    </div>
+  </div>
+</div>
+
+<audio id="ping-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3">
+<canvas id="ocrCanvas" style="display:none;"></canvas>
+<input id="importDafInput" type="file" accept=".daf" style="display:none;">
+
+<script>
+const $=t=>document.getElementById(t);let assetsMap={},currentAsset=null,cameraStream=null,ocrStream=null,isOcrActive=!1;const assetRegex=/[A-Z]{0,4}\d{2,6}/g;const saveToLocal=()=>localStorage.setItem("AssetManager_Data",JSON.stringify(assetsMap));window.onload=()=>{const t=localStorage.getItem("AssetManager_Data");t&&(assetsMap=JSON.parse(t),renderAssetButtons())},$("excelInput").onchange=()=>{$("extractBtn").disabled=!$("excelInput").files.length},$("extractBtn").onclick=()=>{const t=new FileReader;t.onload=t=>{const e=XLSX.read(new Uint8Array(t.target.result),{type:"array"}),s=XLSX.utils.sheet_to_json(e.Sheets[e.SheetNames[0]],{header:1});assetsMap={},s.forEach(t=>{t.forEach(e=>{const s=String(e).match(assetRegex);s&&s.forEach(e=>{assetsMap[e]||(assetsMap[e]={description:t.join(" | "),report:"",attachments:[]})})})}),renderAssetButtons(),saveToLocal()},t.readAsArrayBuffer($("excelInput").files[0])};const renderAssetButtons=()=>{const t=$("assetContainer");t.innerHTML="";const e=document.createElement("div");e.className="assetGrid",Object.keys(assetsMap).sort((t,e)=>t.localeCompare(e,undefined,{numeric:!0})).forEach(t=>{const s=document.createElement("button");s.className="assetBtn",s.textContent=t,s.onclick=()=>openAssetModal(t),e.appendChild(s)}),t.appendChild(e)};const openAssetModal=t=>{currentAsset=t;const e=assetsMap[t];$("modalTitle").textContent="Asset: "+t,$("assetId").value=t,$("assetFullDesc").value=e.description||"",$("engineerReport").value=e.report||"",updateAttachmentsUI(),$("assetModal").classList.add("show")};const updateAttachmentsUI=()=>{const t=$("attachments");t.innerHTML="";const e=assetsMap[currentAsset].attachments||[];e.forEach((e,s)=>{const n=document.createElement("div");n.className="thumbBox",n.innerHTML=`<img src="${e.url}" class="thumb"><button class="remove-btn" onclick="removeAttachment(${s})">×</button>`,t.appendChild(n)}),$("savedInfo").textContent=`(${e.length} files)`};window.removeAttachment=t=>{assetsMap[currentAsset].attachments.splice(t,1),updateAttachmentsUI(),saveToLocal()};$("openOCRScanner").onclick=async()=>{try{ocrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}),$("ocrCamera").srcObject=ocrStream,$("ocrModal").classList.add("show"),isOcrActive=!0,ocrScanLoop()}catch(t){alert("Camera Error: "+t.message)}};const ocrScanLoop=async()=>{if(!isOcrActive)return;const t=$("ocrCanvas"),e=t.getContext("2d"),s=$("ocrCamera");if(s.readyState===s.HAVE_ENOUGH_DATA){t.width=400,t.height=120,e.drawImage(s,s.videoWidth/2-200,s.videoHeight/2-60,400,120,0,0,400,120);const n=await Tesseract.recognize(t,"eng",{tessedit_char_whitelist:"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"}),a=n.data.text.trim().toUpperCase().replace(/\s/g,"").match(assetRegex);if(a&&assetsMap[a[0]])return $("ping-sound").play(),isOcrActive=!1,ocrStream.getTracks().forEach(t=>t.stop()),$("ocrModal").classList.remove("show"),void openAssetModal(a[0])}setTimeout(ocrScanLoop,700)};$("closeOCR").onclick=()=>(isOcrActive=!1,ocrStream&&ocrStream.getTracks().forEach(t=>t.stop()),void $("ocrModal").classList.remove("show")),$("openCamera").onclick=async()=>{(cameraStream=await navigator.mediaDevices.getUserMedia({video:!0})),($("cameraView").srcObject=cameraStream),($("cameraView").style.display="block"),($("takePhoto").style.display="inline-block")},$("takePhoto").onclick=()=>{const t=document.createElement("canvas"),e=$("cameraView");(t.width=e.videoWidth),(t.height=e.videoHeight),t.getContext("2d").drawImage(e,0,0),assetsMap[currentAsset].attachments.push({url:t.toDataURL("image/png"),name:Date.now()+".png"}),updateAttachmentsUI(),cameraStream.getTracks().forEach(t=>t.stop()),(e.style.display="none"),($("takePhoto").style.display="none"),saveToLocal()};$("saveAssetBtn").onclick=()=>(assetsMap[currentAsset].report=$("engineerReport").value,saveToLocal(),void alert("Report Saved locally")),$("closeAssetBtn").onclick=()=>($("assetModal").classList.remove("show"),cameraStream&&cameraStream.getTracks().forEach(t=>t.stop())),$("exportAllBtn").onclick=()=>{const t=new Blob([JSON.stringify(assetsMap,null,2)],{type:"application/json"}),e=document.createElement("a");e.href=URL.createObjectURL(t),e.download=`Assets_Export_${Date.now()}.daf`,e.click()},$("importDafBtn").onclick=()=>$("importDafInput").click(),$("importDafInput").onchange=t=>{const e=new FileReader;e.onload=t=>{assetsMap=JSON.parse(t.target.result),renderAssetButtons(),saveToLocal(),alert("Data Imported!")},e.readAsText(t.target.files[0])},$("clearAllBtn").onclick=()=>confirm("Clear ALL data?")&&(localStorage.clear(),location.reload());
+</script>
+
+</body>
+</html>
