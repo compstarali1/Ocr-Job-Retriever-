@@ -28,8 +28,8 @@
   .thumbBox{display:inline-block;margin:8px;position:relative;border:1px solid #475569;padding:5px;border-radius:8px;}
   .thumb{width:130px;height:90px;object-fit:cover;display:block;border-radius:4px;}
   .remove-btn{position:absolute;top:-5px;right:-5px;background:red;color:white;border-radius:50%;width:24px;height:24px;cursor:pointer;border:none;font-weight:bold;}
-  #ocrTarget{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:80px;border:4px solid var(--pink);pointer-events:none;z-index:10;}
-  video{background:#000;border-radius:10px;width:100%;}
+  #ocrTarget{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100px;height:80px;border:4px solid var(--pink);pointer-events:none;z-index:10;}
+  video{background:#000;border-radius:100px;width:100%;}
   textarea, input[type=text] { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 12px; border-radius: 8px; width: 100%; }
 </style>
 </head>
@@ -158,8 +158,8 @@ async function ocrScanLoop() {
     if (!isOcrActive) return;
     const canvas = $("ocrCanvas"), ctx = canvas.getContext("2d"), v = $("ocrCamera");
     if (v.readyState === v.HAVE_ENOUGH_DATA) {
-        canvas.width = 300; canvas.height = 120;
-        ctx.drawImage(v, v.videoWidth/2-200, v.videoHeight/2-60, 400, 120, 0, 0, 400, 120);
+        canvas.width = 200; canvas.height = 70;
+        ctx.drawImage(v, v.videoWidth/2-200, v.videoHeight/2-30, 200, 70, 0, 0, 200, 70);
         const res = await Tesseract.recognize(canvas, "eng");
         const found = res.data.text.toUpperCase().replace(/\s/g, "").match(assetRegex);
         if (found && assetsMap[found[0]]) {
@@ -167,7 +167,7 @@ async function ocrScanLoop() {
             $("ocrModal").classList.remove("show"); openAssetModal(found[0]); return;
         }
     }
-    setTimeout(ocrScanLoop, 200);
+    setTimeout(ocrScanLoop, 100);
 }
 
 $("closeOCR").onclick = () => { isOcrActive = false; if(ocrStream) ocrStream.getTracks().forEach(t => t.stop()); $("ocrModal").classList.remove("show"); };
