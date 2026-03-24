@@ -158,7 +158,7 @@ async function ocrScanLoop() {
     if (!isOcrActive) return;
     const canvas = $("ocrCanvas"), ctx = canvas.getContext("2d"), v = $("ocrCamera");
     if (v.readyState === v.HAVE_ENOUGH_DATA) {
-        canvas.width = 300; canvas.height = 90;
+        canvas.width = 300; canvas.height = 120;
         ctx.drawImage(v, v.videoWidth/2-200, v.videoHeight/2-60, 400, 120, 0, 0, 400, 120);
         const res = await Tesseract.recognize(canvas, "eng");
         const found = res.data.text.toUpperCase().replace(/\s/g, "").match(assetRegex);
@@ -289,33 +289,3 @@ $("closeAssetBtn").onclick = () => {
 
 </body>
 </html>
-.modalHeader { background: #334155; border-bottom: 1px solid #475569; }
-input, textarea { background: #0f172a !important; color: #fff !important; border: 1px solid #475569 !important; }
-#assetContainer p { color: #94a3b8 !important; }
-
-/* 3D Animated Buttons for Asset Grid */
-.assetBtn {
-    background: #10b981;
-    border: none;
-    border-radius: 12px;
-    padding: 14px 20px;
-    color: #fff;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.1s;
-    box-shadow: 0 5px 0 #065f46; /* The 3D Depth */
-    position: relative;
-    margin-bottom: 5px;
-}
-
-.assetBtn:hover { background: #059669; transform: translateY(1px); box-shadow: 0 4px 0 #065f46; }
-
-.assetBtn:active {
-    transform: translateY(4px); /* Moves down when clicked */
-    box-shadow: 0 1px 0 #065f46; /* flattens the shadow */
-}
-
-</style>
-</head>
-<body>
-
