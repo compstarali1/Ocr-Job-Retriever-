@@ -147,55 +147,48 @@ function renderAssetButtons() {
     container.appendChild(grid);
 }
 
-// OCR SCANNER LOOP
-$("openOCRScanner").onclick = async () => {
-    ocrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    $("ocrCamera").srcObject = ocrStream; $("ocrModal").classList.add("show");
-    isOcrActive = true; ocrScanLoop();
-};
-
-async function ocrScanLoop() {
+const ocrScanLoop = async () => {
     if (!isOcrActive) return;
-    const canvas = $("ocrCanvas"), ctx = canvas.getContext("2d"), v = $("ocrCamera");
-    if (v.readyState === v.HAVE_ENOUGH_DATA) {
-        canvas.width = 400; canvas.height = 120;
-        ctx.drawImage(v, v.videoWidth/2-200, v.videoHeight/2-60, 400, 120, 0, 0, 400, 120);
-        const res = await Tesseract.recognize(canvas, "eng");
-        const found = res.data.text.toUpperCase().replace(/\s/g, "").match(assetRegex);
-        if (found && assetsMap[found[0]]) {
-            isOcrActive = false; ocrStream.getTracks().forEach(t => t.stop());
-            $("ocrModal").classList.remove("show"); openAssetModal(found[0]); return;
+    const t = $("ocrCanvas"), e = t.getContext("2d"), s = $("ocrCamera");
+    
+    if (s.readyState === s.HAVE_ENOUGH_DATA) {
+        t.width = 400;
+        t.height = 120;
+        
+        // --- IMPROVEMENT 1: Draw image and enhance contrast ---
+        e.drawImage(s, s.videoWidth / 2 - 200, s.videoHeight / 2 - 60, 400, 120, 0, 0, 400, 120);
+        
+        const imageData = e.getImageData(0, 0, t.width, t.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, data[i] * 1.5);     // Red
+            data[i+1] = Math.min(255, data[i+1] * 1.5); // Green
+            data[i+2] = Math.min(255, data[i+2] * 1.5); // Blue
+        }
+        e.putImageData(imageData, 0, 0);
+
+        // --- IMPROVEMENT 2: Faster OCR config ---
+        const n = await Tesseract.recognize(t, "eng", {
+            tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            tessedit_ocr_engine_mode: 1,
+            tessedit_pageseg_mode: 6,
+            preserve_interword_spaces: '0'
+        });
+        
+        const a = n.data.text.trim().toUpperCase().replace(/\s/g, "").match(assetRegex);
+        
+        if (a && assetsMap[a[0]]) {
+            $("ping-sound").play();
+            isOcrActive = false;
+            ocrStream.getTracks().forEach(track => track.stop());
+            $("ocrModal").classList.remove("show");
+            openAssetModal(a[0]);
+            return;
         }
     }
-    setTimeout(ocrScanLoop, 500);
-}
 
-$("closeOCR").onclick = () => { isOcrActive = false; if(ocrStream) ocrStream.getTracks().forEach(t => t.stop()); $("ocrModal").classList.remove("show"); };
-$("clearAllBtn").onclick = () => confirm("Clear ALL data?") && (localStorage.clear(), location.reload());
-function openAssetModal(id) {
-    currentAsset = id;
-    const data = assetsMap[id];
-    $("modalTitle").textContent = "Asset: " + id;
-    $("assetId").value = id;
-    $("assetFullDesc").value = data.description || "";
-    $("engineerReport").value = data.report || "";
-    $("cameraView").style.display = "none";
-    updateAttachmentsUI();
-    $("assetModal").classList.add("show");
-}
-
-function updateAttachmentsUI() {
-    const container = $("attachments"); container.innerHTML = "";
-    assetsMap[currentAsset].attachments.forEach((file, idx) => {
-        const box = document.createElement("div"); box.className = "thumbBox";
-        box.innerHTML = `<img src="${file.url}" class="thumb"><button class="remove-btn" onclick="removeAttachment(${idx})">×</button>`;
-        container.appendChild(box);
-    });
-}
-
-window.removeAttachment = idx => {
-    assetsMap[currentAsset].attachments.splice(idx, 1);
-    updateAttachmentsUI(); saveToLocal();
+    // --- IMPROVEMENT 3: Faster loop ---
+    setTimeout(ocrScanLoop, 100);
 };
 
 // CAMERA & FILE UPLOAD
