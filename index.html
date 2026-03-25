@@ -158,8 +158,8 @@ async function ocrScanLoop() {
     if (!isOcrActive) return;
     const canvas = $("ocrCanvas"), ctx = canvas.getContext("2d"), v = $("ocrCamera");
     if (v.readyState === v.HAVE_ENOUGH_DATA) {
-        canvas.width = 200; canvas.height = 70;
-        ctx.drawImage(v, v.videoWidth/2-200, v.videoHeight/2-30, 200, 70, 0, 0, 200, 70);
+        canvas.width = 300; canvas.height = 70;
+        ctx.drawImage(v, v.videoWidth/2-300, v.videoHeight/2-30, 300, 70, 0, 0, 300, 70);
         const res = await Tesseract.recognize(canvas, "eng");
         const found = res.data.text.toUpperCase().replace(/\s/g, "").match(assetRegex);
         if (found && assetsMap[found[0]]) {
@@ -167,7 +167,7 @@ async function ocrScanLoop() {
             $("ocrModal").classList.remove("show"); openAssetModal(found[0]); return;
         }
     }
-    setTimeout(ocrScanLoop, 100);
+    setTimeout(ocrScanLoop, 200);
 }
 
 $("closeOCR").onclick = () => { isOcrActive = false; if(ocrStream) ocrStream.getTracks().forEach(t => t.stop()); $("ocrModal").classList.remove("show"); };
