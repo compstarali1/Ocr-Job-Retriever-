@@ -1,277 +1,296 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en-GB">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=0.9" />
-<title>Asset Manager Pro</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07090d">
+<title>Enfield Dotcom — FAST Scanner</title>
 <style>
-  :root { --brand:#0056b3; --accent:#28a745; --bg:#121826; --pink:#ec4899; }
-  body{margin:0;font-family:sans-serif;background:#121826;padding:10px;color:#e2e8f0;}
-  header{background:linear-gradient(135deg,#0056b3,#003f80);color:#fff;padding:20px;text-align:center;border-radius:12px;margin-bottom:15px;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
-  main{max-width:1150px;margin:0 auto;background:#1e293b;padding:25px;border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,0.4);}
-  .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
-  input[type=file]{padding:8px;border:1px solid #475569;border-radius:8px;background:#0f172a;color:white;}
-  
-  /* 3D MODERN BUTTONS */
-  button {
-    border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
-    padding: 14px 20px; color: #fff; transition: 0.1s; position: relative;
-    text-transform: uppercase; box-shadow: 0 5px 0 rgba(0,0,0,0.4); outline: none;
-  }
-  button:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.4); }
-  button:disabled { background: #475569 !important; box-shadow: none !important; opacity: 0.5; }
-
-  .primary { background: var(--accent); box-shadow: 0 5px 0 #1e7e34; }
-  #openOCRScanner { background: var(--pink); box-shadow: 0 5px 0 #9d174d; }
-  .small { background: #3b82f6; font-size: 0.85rem; padding: 10px 15px; box-shadow: 0 4px 0 #1e40af; }
-  .assetGrid{display:flex;flex-wrap:wrap;gap:15px;margin-top:20px;}
-  .assetBtn{ min-width:160px; background:#10b981; font-size:1.1rem; box-shadow: 0 5px 0 #065f46; }
-
-  /* MODALS */
-  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:15px;}
-  .modal.show{display:flex;}
-  .modalCard{width:100%;max-width:1100px;height:92vh;background:#1e293b;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;color:white;}
-  .modalHeader{padding:18px;background:#334155;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #475569;}
-  .modalBody{padding:25px;overflow-y:auto;flex:1;}
-  .thumbBox{display:inline-block;margin:8px;position:relative;border:1px solid #475569;padding:5px;border-radius:8px;}
-  .thumb{width:130px;height:90px;object-fit:cover;display:block;border-radius:4px;}
-  .remove-btn{position:absolute;top:-5px;right:-5px;background:red;color:white;border-radius:50%;width:24px;height:24px;cursor:pointer;border:none;font-weight:bold;}
-  #ocrTarget{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100px;height:80px;border:4px solid var(--pink);pointer-events:none;z-index:10;}
-  video{background:#000;border-radius:12px;width:100%;}
-  textarea, input[type=text] { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box;}
+:root{
+ --bg:#07090d;--card:#11151c;--line:#29313d;--text:#f5f7fa;--muted:#8f9aaa;
+ --cyan:#00d9ff;--green:#16e38a;--amber:#ffb020;--scan:#ff2d9a;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
+body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto}
+button,input,textarea{font:inherit}
+.header{position:relative;padding:17px 58px 16px 16px;border:1px solid #24303b;border-radius:16px;
+ background:linear-gradient(145deg,#101923,#0a0d12);margin-bottom:12px}
+.header h1{font-size:1.08rem;color:var(--cyan);margin-bottom:3px}
+.header p{font-size:.76rem;color:var(--muted)}
+.top-reset{position:absolute;right:12px;top:12px;background:linear-gradient(145deg,#555e69,#303740);border:1px solid #66717d;color:#fff;border-radius:8px;padding:6px 9px;font-size:.65rem;font-weight:900;cursor:pointer}
+.panel{background:linear-gradient(145deg,#121820,#0e1218);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:12px}
+.panel-title{font-size:.86rem;color:#dce3ea;margin-bottom:9px;font-weight:700}
+textarea{width:100%;height:120px;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:10px;padding:11px;outline:none}
+.row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:11px 13px;color:white;font-weight:800;cursor:pointer}
+.primary{background:linear-gradient(145deg,#00c8ed,#007d9b)}
+.scanbtn{background:linear-gradient(145deg,#ff39aa,#a90068);flex:1;min-width:170px}
+.clear{background:linear-gradient(145deg,#555e69,#303740)}
+.small{font-size:.76rem;color:var(--muted);margin-top:7px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.stat{background:#10151c;border:1px solid var(--line);border-radius:10px;text-align:center;padding:8px}
+.stat b{display:block;font-size:1.25rem}
+#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
+.search{width:100%;background:#0c1016;border:1px solid var(--line);color:#fff;border-radius:10px;padding:11px 13px;outline:none;margin-bottom:10px}
+.section-title{font-size:.86rem;padding:8px 3px;border-bottom:1px solid var(--line);margin-bottom:7px}
+.section-title.pending{color:var(--amber)}.section-title.done{color:var(--green)}
+.item{display:flex;align-items:center;gap:9px;background:linear-gradient(145deg,#141a22,#10151b);border:1px solid #242d38;
+border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom:7px;transition:.2s}
+.item.done{border-left-color:var(--green);opacity:.72}
+.item.scan-hit{animation:hit 2s ease;outline:4px solid var(--scan);background:#30152a}
+@keyframes hit{0%{transform:scale(1.03)}100%{transform:scale(1)}}
+.num{min-width:32px;text-align:center;background:#202832;border-radius:7px;padding:5px 3px;color:#aab4c0;font-size:.72rem}
+.tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center}
+.tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#00170d}
+.reg{font-size:1rem;font-weight:900;letter-spacing:.7px}
+.meta{font-size:.7rem;color:var(--muted);margin-top:1px}
+.hidden{display:none!important}
+#scanner{display:none;position:fixed;inset:0;background:#020406eF;z-index:1000;align-items:center;justify-content:center;padding:15px}
+#scanner.open{display:flex}
+.scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:12px}
+.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11}
+#video{width:100%;height:100%;object-fit:cover;display:block}
+.overlay{position:absolute;left:10%;right:10%;top:40%;height:20%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006}
+.overlay:before{content:"PLATE";position:absolute;left:8px;top:-23px;color:#ff72c0;font-size:.65rem;font-weight:900}
+.scan-status{text-align:center;font-size:.82rem;color:#dbe3ea;padding:9px 4px;min-height:36px}
+.scanner-controls{display:flex;gap:8px}.scanner-controls button{flex:1}
+.close{background:linear-gradient(145deg,#555,#292e34)}
+.fast-note{color:#16e38a;font-size:.7rem;margin-top:4px}
+#ocrCanvas{display:none}
 </style>
 </head>
 <body>
 
-<header><strong>Service Engineer — Asset Visual Manager & OCR</strong></header>
+<header class="header">
+ <button id="resetBtn" class="top-reset" type="button">↻ RESET</button>
+ <h1>🚐 Enfield Dotcom — FAST Scanner</h1>
+ <p>Point & scan — instant match detection</p>
+</header>
 
-<main>
-  <div class="controls">
-    <input id="excelInput" type="file" accept=".xlsx,.xls" />
-    <button id="extractBtn" class="primary" disabled>Extract Excel</button>
-    <button id="openOCRScanner">SCAN ASSET ID</button>
-    <button id="exportAllBtn" class="small">Export .daf</button>
-    <button id="importDafBtn" class="small">Import .daf</button>
-    <button id="clearAllBtn" class="small" style="background:#ef4444; box-shadow: 0 4px 0 #991b1b;">Clear All</button>
-  </div>
-  <div id="assetContainer"><p style="color:#94a3b8;">Load Excel file to begin...</p></div>
-</main>
+<section class="panel">
+ <div class="panel-title">📋 JOB REGISTRATIONS</div>
+ <textarea id="rawText" placeholder="Paste your list here...&#10;NX22URV - DONE&#10;NX22ULU&#10;NX22ULV"></textarea>
+ <div class="row">
+  <button class="btn primary" id="processBtn">⚡ PROCESS LIST</button>
+  <button class="btn clear" id="clearBtn">Clear</button>
+  <button class="btn scanbtn" id="openScannerBtn">📷 SCAN REG</button>
+ </div>
+ <div class="small fast-note">💡 Tip: Type reg directly in search = instant. Scan = camera OCR.</div>
+</section>
 
-<div id="assetModal" class="modal">
-  <div class="modalCard">
-    <div class="modalHeader"><strong id="modalTitle">Asset Details</strong><button id="closeAssetBtn" class="small">Close</button></div>
-    <div class="modalBody">
-      <div style="display:flex;gap:20px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:300px;">
-          <label>Asset Number</label><input id="assetId" type="text" readonly>
-          <label>Description</label><textarea id="assetFullDesc" rows="3" readonly></textarea>
-          <div style="margin-top:15px;padding:10px;background:#334155;border-radius:10px;">
-            <button id="openCamera" class="small">Open Camera</button>
-            <button id="takePhoto" class="small" style="display:none;background:#28a745;">Capture</button>
-            <video id="cameraView" autoplay playsinline style="display:none;margin-top:10px;"></video>
-          </div>
-        </div>
-        <div style="flex:1;min-width:300px;">
-          <label>Engineer Report</label><textarea id="engineerReport" rows="8"></textarea>
-          <div style="display:flex;gap:10px;margin-top:10px;">
-            <button id="saveAssetBtn" class="primary" style="flex:1;">SAVE & EXPORT JPG</button>
-            <button id="attachFromFilesBtn" class="small">Files</button>
-          </div>
-        </div>
-      </div>
-      <div id="attachments" style="display:flex;flex-wrap:wrap;margin-top:15px;"></div>
-    </div>
-  </div>
+<div class="stats">
+ <div class="stat"><b id="pendingCount">0</b><span>PENDING</span></div>
+ <div class="stat"><b id="doneCount">0</b><span>DONE</span></div>
+ <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
 </div>
 
-<div id="ocrModal" class="modal">
-  <div class="modalCard" style="max-width:400px;height:auto;">
-    <div class="modalHeader"><strong>Scanning...</strong><button id="closeOCR" class="small">X</button></div>
-    <div class="modalBody" style="background:#000;position:relative;height:300px;">
-      <video id="ocrCamera" autoplay playsinline muted style="height:100%;width:100%;"></video>
-      <div id="ocrTarget"></div>
-    </div>
-  </div>
-</div>
+<input id="search" class="search" placeholder="🔍 Type registration here — INSTANT search!">
 
-<canvas id="ocrCanvas" style="display:none;"></canvas>
-<input id="importDafInput" type="file" accept=".daf" style="display:none;">
+<section>
+ <div class="section-title pending">⏳ TO DO</div>
+ <div id="pendingList"></div>
+</section>
+<section>
+ <div class="section-title done">✅ COMPLETED</div>
+ <div id="doneList"></div>
+</section>
+
+<div id="scanner">
+ <div class="scanbox">
+  <div class="panel-title">📷 AIM AT PLATE</div>
+  <div class="video-wrap">
+   <video id="video" autoplay muted playsinline></video>
+   <div class="overlay"></div>
+  </div>
+  <div class="scan-status" id="scanStatus">Ready — tap SCAN NOW when plate is clear</div>
+  <div class="scanner-controls">
+   <button class="btn close" id="closeScanner">✕ CLOSE</button>
+   <button class="btn scanbtn" id="scanNow">◎ SCAN NOW</button>
+  </div>
+  <div class="small" style="margin-top:8px">💡 For fastest results: hold still, good lighting, plate fills the box</div>
+ </div>
+</div>
+<canvas id="ocrCanvas"></canvas>
 
 <script>
-const $ = id => document.getElementById(id);
-let assetsMap = {}, currentAsset = null, cameraStream = null, ocrStream = null, isOcrActive = false;
-const assetRegex = /(?=[A-Z0-9]{3,})[A-Z]{0,4}\d{1,6}/g;
+const KEY='enfield-fast-v2';
+let items=[];
+let stream=null, scanning=false;
+const $=id=>document.getElementById(id);
+const raw=$('rawText'), pendingList=$('pendingList'), doneList=$('doneList');
 
-const saveToLocal = () => localStorage.setItem("AssetManager_Data", JSON.stringify(assetsMap));
-
-window.onload = () => {
-    const data = localStorage.getItem("AssetManager_Data");
-    if (data) { assetsMap = JSON.parse(data); renderAssetButtons(); }
+function norm(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function validReg(s){return /^[A-Z]{2}\d{2}[A-Z0-9]{3}$/.test(norm(s));}
+function parse(text){
+ const out=[], seen=new Set();
+ text.split(/[\r\n]+/).forEach(line=>{
+   const m=line.match(/\b([A-Z]{2}\s*\d{2}\s*[A-Z0-9]{3})\b/i);
+   if(!m)return;
+   const reg=norm(m[1]);
+   if(!validReg(reg)||seen.has(reg))return;
+   seen.add(reg);
+   out.push({reg,done:/-?\s*DONE\b/i.test(line)});
+ });
+ return out;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify({items,raw:raw.value}));}
+function load(){
+ try{
+  const d=JSON.parse(localStorage.getItem(KEY)||'{"items":[],"raw":""}');
+  if(d?.items?.length){items=d.items;raw.value=d.raw||'';render();}
+ }catch(e){}
+}
+function render(){
+ pendingList.innerHTML='';doneList.innerHTML='';
+ items.forEach((x,i)=>{
+   const el=document.createElement('div');
+   el.className='item '+(x.done?'done':'pending');
+   el.dataset.reg=x.reg;
+   el.innerHTML=`<div class="num">${i+1}</div><div class="tick ${x.done?'checked':''}"></div><div><div class="reg">${x.reg}</div><div class="meta">${x.done?'COMPLETED':'PENDING'}</div></div>`;
+   el.querySelector('.tick').onclick=()=>toggle(i);
+   (x.done?doneList:pendingList).appendChild(el);
+ });
+ $('pendingCount').textContent=items.filter(x=>!x.done).length;
+ $('doneCount').textContent=items.filter(x=>x.done).length;
+ $('totalCount').textContent=items.length;
+ filter();
+}
+function toggle(i){items[i].done=!items[i].done;save();render();}
+function filter(){
+ const q=norm($('search').value);
+ document.querySelectorAll('.item').forEach(el=>el.classList.toggle('hidden',q&&!norm(el.dataset.reg).includes(q)));
+}
+$('processBtn').onclick=()=>{
+ const parsed=parse(raw.value);
+ if(!parsed.length){alert('No registrations found. Format: NX22ULU');return;}
+ items=parsed;save();render();
+};
+$('clearBtn').onclick=()=>{raw.value='';raw.focus();};
+$('search').oninput=filter;
+$('resetBtn').onclick=()=>{
+ if(confirm('Reset everything?')){localStorage.removeItem(KEY);items=[];raw.value='';$('search').value='';render();}
 };
 
-$("excelInput").onchange = () => $("extractBtn").disabled = !$("excelInput").files.length;
-$("extractBtn").onclick = () => {
-    const reader = new FileReader();
-    reader.onload = e => {
-        const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
-        const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-        assetsMap = {};
-        data.forEach(row => {
-            row.forEach(cell => {
-                const matches = String(cell).match(assetRegex);
-                if (matches) matches.forEach(m => {
-                    if (!assetsMap[m]) assetsMap[m] = { description: row.join(" | "), report: "", attachments: [] };
-                });
-            });
-        });
-        renderAssetButtons(); saveToLocal();
-    };
-    reader.readAsArrayBuffer($("excelInput").files[0]);
-};
-
-function renderAssetButtons() {
-    const container = $("assetContainer"); container.innerHTML = "";
-    const grid = document.createElement("div"); grid.className = "assetGrid";
-    Object.keys(assetsMap).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(id => {
-        const btn = document.createElement("button");
-        btn.className = "assetBtn"; btn.textContent = id;
-        btn.onclick = () => openAssetModal(id);
-        grid.appendChild(btn);
-    });
-    container.appendChild(grid);
+function beep(){
+ try{const c=new (window.AudioContext||webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();
+ o.frequency.value=880;g.gain.setValueAtTime(.001,c.currentTime);g.gain.linearRampToValueAtTime(.3,c.currentTime+.05);
+ g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.3);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}
 }
 
-$("openOCRScanner").onclick = async () => {
-    ocrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    $("ocrCamera").srcObject = ocrStream; $("ocrModal").classList.add("show");
-    isOcrActive = true; ocrScanLoop();
-};
+// ---------------- FAST OCR ----------------
+let worker=null, isProcessing=false;
 
-async function ocrScanLoop() {
-    if (!isOcrActive) return;
-    const canvas = $("ocrCanvas"), ctx = canvas.getContext("2d"), v = $("ocrCamera");
-    if (v.readyState === v.HAVE_ENOUGH_DATA) {
-        canvas.width = 300; canvas.height = 70;
-        ctx.drawImage(v, v.videoWidth/2-150, v.videoHeight/2-35, 300, 70, 0, 0, 300, 70);
-        const res = await Tesseract.recognize(canvas, "eng");
-        const found = res.data.text.toUpperCase().replace(/\s/g, "").match(assetRegex);
-        if (found && assetsMap[found[0]]) {
-            isOcrActive = false; ocrStream.getTracks().forEach(t => t.stop());
-            $("ocrModal").classList.remove("show"); openAssetModal(found[0]); return;
-        }
+async function loadTesseract(){
+ if(window.Tesseract)return true;
+ if(!window.tesseractLoadAttempted){
+  window.tesseractLoadAttempted=true;
+  $('scanStatus').textContent='Loading OCR engine first time…';
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=res;s.onerror=rej;
+    document.head.appendChild(s);
+  });
+ }
+ await new Promise(r=>{let i=setInterval(()=>{if(window.Tesseract){clearInterval(i);r()}},100);});
+ return true;
+}
+
+async function getWorker(){
+ if(worker)return worker;
+ await loadTesseract();
+ worker=await Tesseract.createWorker('eng',1,{
+  langPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/',
+  cacheMethod:'none',
+  gzip:false
+ });
+ await worker.setParameters({
+  tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  tessedit_pageseg_mode:'7', // TREAT AS SINGLE LINE — FASTEST MODE
+  preserve_interword_spaces:'0',
+  textord_heavy_nr:'1',
+  textord_min_linesize:'2.5'
+ });
+ return worker;
+}
+
+function stopCamera(){
+ scanning=false;isProcessing=false;
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+ $('video').srcObject=null;
+ $('scanner').classList.remove('open');
+}
+
+async function scanFrame(){
+ if(isProcessing)return;
+ isProcessing=true;
+ const v=$('video'),c=$('ocrCanvas');
+ if(!v.videoWidth){isProcessing=false;return;}
+ 
+ // ✅ SMALL CROP = MUCH FASTER — only the plate area
+ const w=v.videoWidth,h=v.videoHeight;
+ const sx=Math.round(w*.1), sy=Math.round(h*.4), sw=Math.round(w*.8), sh=Math.round(h*.2);
+ 
+ // ✅ SMALLER OUTPUT = FASTER
+ const MAX_W=320; // Smaller = faster
+ const scale=Math.min(1,MAX_W/sw);
+ c.width=Math.round(sw*scale);c.height=Math.round(sh*scale);
+ 
+ const ctx=c.getContext('2d');
+ ctx.drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
+ 
+ try{
+  const wkr=await getWorker();
+  const r=await wkr.recognize(c);
+  const text=(r.data?.text||'').toUpperCase();
+  const m=text.match(/[A-Z]{2}\d{2}[A-Z0-9]{3}/);
+  if(m){
+    const found=m[0];
+    const match=items.find(x=>norm(x.reg)===found);
+    if(match){
+      beep();
+      alert(`✅ MATCH: ${found}`);
+      stopCamera();
+      highlightMatch(found);
+      return;
     }
-    setTimeout(ocrScanLoop, 200);
+  }
+  $('scanStatus').textContent=text.trim()?`Read: ${text.trim().slice(0,12)}… — Tap again`:'No plate — try better lighting';
+ }catch(e){
+  $('scanStatus').textContent='Try again — hold steady';
+ }
+ isProcessing=false;
 }
 
-$("closeOCR").onclick = () => { isOcrActive = false; if(ocrStream) ocrStream.getTracks().forEach(t => t.stop()); $("ocrModal").classList.remove("show"); };
-$("closeAssetBtn").onclick = () => { if(cameraStream) cameraStream.getTracks().forEach(t => t.stop()); $("assetModal").classList.remove("show"); };
-
-function openAssetModal(id) {
-    currentAsset = id;
-    const data = assetsMap[id];
-    $("modalTitle").textContent = "Asset: " + id;
-    $("assetId").value = id;
-    $("assetFullDesc").value = data.description || "";
-    $("engineerReport").value = data.report || "";
-    $("cameraView").style.display = "none";
-    updateAttachmentsUI();
-    $("assetModal").classList.add("show");
+function highlightMatch(reg){
+ document.querySelectorAll('.scan-hit').forEach(x=>x.classList.remove('scan-hit'));
+ const el=document.querySelector(`.item[data-reg="${reg}"]`);
+ if(!el)return;
+ el.classList.add('scan-hit');
+ el.scrollIntoView({behavior:'smooth',block:'center'});
+ setTimeout(()=>el.classList.remove('scan-hit'),3000);
 }
 
-function updateAttachmentsUI() {
-    const container = $("attachments"); container.innerHTML = "";
-    assetsMap[currentAsset].attachments.forEach((file, idx) => {
-        const box = document.createElement("div"); box.className = "thumbBox";
-        box.innerHTML = `<img src="${file.url}" class="thumb"><button class="remove-btn" onclick="removeAttachment(${idx})">×</button>`;
-        container.appendChild(box);
-    });
-}
-
-window.removeAttachment = idx => {
-    assetsMap[currentAsset].attachments.splice(idx, 1);
-    updateAttachmentsUI(); saveToLocal();
+$('openScannerBtn').onclick=async()=>{
+ $('scanner').classList.add('open');
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:480}},audio:false});
+  $('video').srcObject=stream;
+  $('scanStatus').textContent='Ready — tap SCAN NOW';
+ }catch(e){
+  alert('Camera access denied. Allow camera permissions.');
+  $('scanner').classList.remove('open');
+ }
 };
+$('closeScanner').onclick=stopCamera;
+$('scanNow').onclick=scanFrame;
 
-$("openCamera").onclick = async () => {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    $("cameraView").srcObject = cameraStream; $("cameraView").style.display = "block"; $("takePhoto").style.display = "inline-block";
-};
+window.addEventListener('beforeunload',async()=>{
+ if(worker){await worker.terminate();worker=null;}
+ if(stream)stopCamera();
+});
 
-$("takePhoto").onclick = () => {
-    const canvas = document.createElement("canvas"), v = $("cameraView");
-    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
-    canvas.getContext("2d").drawImage(v, 0, 0);
-    assetsMap[currentAsset].attachments.push({ url: canvas.toDataURL("image/jpeg", 0.8), name: Date.now()+".jpg" });
-    updateAttachmentsUI();
-    cameraStream.getTracks().forEach(t => t.stop());
-    v.style.display = "none"; $("takePhoto").style.display = "none";
-    saveToLocal();
-};
-
-$("attachFromFilesBtn").onclick = () => {
-    const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true;
-    inp.onchange = e => {
-        Array.from(e.target.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                assetsMap[currentAsset].attachments.push({ url: ev.target.result, name: file.name });
-                updateAttachmentsUI(); saveToLocal();
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-    inp.click();
-};
-
-$("saveAssetBtn").onclick = () => {
-    assetsMap[currentAsset].report = $("engineerReport").value;
-    saveToLocal();
-    const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d");
-    canvas.width = 800; canvas.height = 1000;
-    ctx.fillStyle = "white"; ctx.fillRect(0,0,800,1000);
-    ctx.fillStyle = "black"; ctx.font = "bold 24px sans-serif";
-    ctx.fillText("ASSET REPORT: " + currentAsset, 50, 50);
-    ctx.font = "16px sans-serif";
-    const lines = $("engineerReport").value.split('\n');
-    lines.forEach((l, i) => ctx.fillText(l, 50, 100 + (i*25)));
-    const link = document
-.createElement("a");
-    link.download = `Report_${currentAsset}.jpg`;
-    link.href = canvas.toDataURL("image/jpeg", 0.9);
-    link.click();
-    alert("Report Saved & Exported!");
-};
-
-$("exportAllBtn").onclick = () => {
-    const blob = new Blob([JSON.stringify(assetsMap)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.download = "Assets_Data.daf";
-    link.href = URL.createObjectURL(blob);
-    link.click();
-};
-
-$("importDafBtn").onclick = () => $("importDafInput").click();
-$("importDafInput").onchange = e => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-        assetsMap = JSON.parse(ev.target.result);
-        renderAssetButtons();
-        saveToLocal();
-        alert("Import Successful!");
-    };
-    reader.readAsText(e.target.files[0]);
-};
-
-$("clearAllBtn").onclick = () => {
-    if (confirm("Are you sure? This will delete all local data.")) {
-        localStorage.clear();
-        location.reload();
-    }
-};
+load();
 </script>
-
-
 </body>
 </html>
