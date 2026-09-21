@@ -2,145 +2,221 @@
 <html lang="en-GB">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Reg Scanner & Matcher</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif;}
-body{background:#111;color:#fff;padding:20px;max-width:800px;margin:0 auto}
-h1{font-size:20px;margin-bottom:15px}
-.box{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:15px;margin-bottom:15px}
-label{display:block;margin:10px 0 5px;font-weight:bold}
-textarea{width:100%;height:180px;background:#222;border:1px solid #444;color:#fff;padding:10px;border-radius:5px;font-size:14px;resize:none}
-.btn{background:#2563eb;color:#fff;border:none;padding:12px 20px;border-radius:5px;font-size:16px;cursor:pointer;margin:5px 0;width:100%}
-.btn:hover{background:#1d4ed8}
-.upload-area{border:2px dashed #555;border-radius:8px;padding:30px;text-align:center;cursor:pointer;margin:10px 0}
-.upload-area:hover{border-color:#2563eb;background:#1e293b}
-.progress{height:8px;background:#333;border-radius:4px;margin:10px 0;display:none}
-.progress>div{height:100%;background:#2563eb;width:0%;border-radius:4px;transition:width 0.2s}
-.found{background:#163328;border-left:4px solid #22c55e;padding:10px;margin:5px 0;border-radius:0 5px 5px 0}
-.missing{background:#332a17;border-left:4px solid #f59e0b;padding:10px;margin:5px 0;border-radius:0 5px 5px 0}
-.counts{display:flex;gap:20px;margin:10px 0}
-.count{padding:10px 15px;background:#222;border-radius:5px}
-.raw-btn{background:#333;color:#ddd;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;margin-top:10px}
-.raw-text{margin-top:10px;padding:10px;background:#222;border-radius:5px;font-family:monospace;font-size:12px;color:#aaa;white-space:pre-wrap;max-height:150px;overflow:auto;display:none}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07090d">
+<title>Reg Scanner — Fast Match</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root{
+ --bg:#07090d;--card:#11151c;--line:#29313d;
+ --text:#f5f7fa;--muted:#8f9aaa;--cyan:#00d9ff;
+ --green:#16e38a;--amber:#ffb020;--scan:#ff2d9a;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
+body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto}
+h1{font-size:1.1rem;color:var(--cyan);margin-bottom:4px}
+p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
+.panel{background:linear-gradient(145deg,#121820,#0e1218);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.panel-title{font-size:.86rem;color:#dce3ea;margin-bottom:9px;font-weight:700}
+textarea{width:100%;height:130px;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:10px;padding:11px;outline:none;font-size:.86rem;resize:none}
+textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #00d9ff22}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;border-radius:10px;padding:12px 14px;color:white;font-weight:800;cursor:pointer;flex:1;min-width:140px}
+.scanbtn{background:linear-gradient(145deg,#ff39aa,#a90068)}
+.process{background:linear-gradient(145deg,#00c8ed,#007d9b)}
+.clear{background:linear-gradient(145deg,#555e69,#303740)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.stat{background:#10151c;border:1px solid var(--line);border-radius:10px;text-align:center;padding:10px}
+.stat b{display:block;font-size:1.3rem}.stat span{font-size:.67rem;color:var(--muted)}
+#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
+.list-title{font-size:.86rem;padding:8px 4px 6px;border-bottom:1px solid var(--line);margin:10px 0 5px}
+.pending{color:var(--amber)}.done{color:var(--green)}
+.item{display:flex;align-items:center;gap:10px;background:linear-gradient(145deg,#141a22,#10151b);border:1px solid #242d38;
+border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom:7px;transition:.2s}
+.item.done{border-left-color:var(--green);opacity:.75}
+.item.hit{border-color:var(--scan);background:#2f1429;box-shadow:0 0 20px 5px #ff2d9a66;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(1.04)}100%{transform:scale(1)}}
+.reg{font-size:1rem;font-weight:900;letter-spacing:.7px}
+.tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
+.tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
+.hidden{display:none!important}
+
+/* Scanner Window */
+#scanner{display:none;position:fixed;inset:0;background:#020406ef;z-index:999;align-items:center;justify-content:center;padding:15px}
+#scanner.open{display:flex}
+.scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:14px}
+.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:10px 0}
+#video{width:100%;height:100%;object-fit:cover;display:block}
+.frame{position:absolute;left:7%;right:7%;top:39%;height:22%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006;pointer-events:none}
+.scanline{position:absolute;left:4%;right:4%;top:50%;height:2px;background:#ff65bd;box-shadow:0 0 10px #ff2d9a;animation:sl 1.5s linear infinite}
+@keyframes sl{0%{top:42%}50%{top:58%}100%{top:42%}}
+.scan-status{text-align:center;padding:8px;color:#dbe3ea;font-size:.82rem}
+.controls{display:flex;gap:8px;margin-top:8px}
+.controls button{flex:1}
+.close{background:#333}
+</style>
 </head>
 <body>
 
-<h1>📋 Registration Scanner & Matcher</h1>
+<h1>🚐 Fast Reg Scanner</h1>
+<p>Paste list → Process → Scan → Auto‑jump to match</p>
 
-<!-- YOUR LIST PASTE BOX -->
-<div class="box">
-<label>1. Paste your registration list here (one per line)</label>
-<textarea id="regList" placeholder="NX22ULU&#10;NX22ULV&#10;NX72VGN&#10;..."></textarea>
+<div class="panel">
+ <div class="panel-title">📋 YOUR REGISTRATION LIST</div>
+ <textarea id="regBox" placeholder="NX22ULU&#10;NX22ULV&#10;NX72VGN&#10;one per line…"></textarea>
+ <div class="row">
+  <button class="btn process" id="processBtn">⚡ PROCESS LIST</button>
+  <button class="btn scanbtn" id="openScanBtn">📷 SCAN REG</button>
+  <button class="btn clear" id="clearBtn">Clear</button>
+ </div>
 </div>
 
-<!-- SCAN AREA -->
-<div class="box">
-<label>2. Select & scan image</label>
-<div class="upload-area" id="dropArea" onclick="document.getElementById('imgFile').click()">
-📷 Click to select image<br>
-<span style="color:#888;font-size:12px">Screenshot or photo of your job list</span>
-</div>
-<input type="file" id="imgFile" accept="image/*" style="display:none">
-<button class="btn" id="scanButton" onclick="doScan()">🔍 SCAN & MATCH</button>
-<div class="progress" id="progWrap"><div id="progBar"></div></div>
+<div class="stats">
+ <div class="stat"><b id="pendingCount">0</b><span>PENDING</span></div>
+ <div class="stat"><b id="doneCount">0</b><span>DONE</span></div>
+ <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
 </div>
 
-<!-- RESULTS -->
-<div class="counts">
-<div class="count">Total in list: <strong id="total">0</strong></div>
-<div class="count" style="color:#22c55e">Found: <strong id="found">0</strong></div>
-<div class="count" style="color:#f59e0b">Not found: <strong id="missing">0</strong></div>
-</div>
+<div class="list-title pending">⏳ PENDING</div>
+<div id="pendingList"></div>
+<div class="list-title done">✅ COMPLETED</div>
+<div id="doneList"></div>
 
-<div id="results"></div>
-<button class="raw-btn" onclick="toggleRaw()">Show/Hide scanned text</button>
-<div class="raw-text" id="rawOcr"></div>
+<!-- SCANNER WINDOW -->
+<div id="scanner">
+ <div class="scanbox">
+  <div class="panel-title">📷 AIM AT REG PLATE</div>
+  <div class="video-wrap">
+   <video id="video" autoplay muted playsinline></video>
+   <div class="frame"><div class="scanline"></div></div>
+  </div>
+  <div class="scan-status" id="scanStatus">Loading camera…</div>
+  <div class="controls">
+   <button class="btn close" id="closeScan">✕ CLOSE</button>
+   <button class="btn scanbtn" id="scanNow">◎ SCAN</button>
+  </div>
+ </div>
+</div>
+<canvas id="canvas" style="display:none"></canvas>
 
 <script>
-let selectedImage = null;
-let ocrResultText = "";
+const $=id=>document.getElementById(id);
+const regBox=$('regBox'), pendingList=$('pendingList'), doneList=$('doneList');
+let items=[], scanning=false, stream=null, lastHit=0;
 
-// Count registrations as you type/paste
-document.getElementById('regList').addEventListener('input', updateCount);
-function updateCount(){
-  const regs = getCleanList();
-  document.getElementById('total').textContent = regs.length;
+// Normalise — remove spaces/symbols, uppercase
+function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+
+// Beep sound
+function beep(){
+ try{
+  const c=new (window.AudioContext||webkitAudioContext);
+  const o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.value=880;
+  g.gain.setValueAtTime(.3,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);
+  o.connect(g).connect(c.destination);
+  o.start();o.stop(c.currentTime+.35);
+ }catch(e){}
 }
-function getCleanList(){
-  return document.getElementById('regList').value
-    .toUpperCase()
-    .split('\n')
-    .map(r => r.trim().replace(/\s+/g, ''))
-    .filter(r => r.length > 3);
+
+// Build list from pasted text
+$('processBtn').onclick=()=>{
+ items=regBox.value.split('\n')
+  .map(r=>clean(r))
+  .filter(r=>r.length>4);
+ if(!items.length)return alert('Paste registrations first');
+ items=items.map(reg=>({reg,done:false}));
+ render();
+};
+
+$('clearBtn').onclick=()=>{regBox.value='';regBox.focus()};
+
+// Render list
+function render(){
+ pendingList.innerHTML='';doneList.innerHTML='';
+ items.forEach((item,i)=>{
+  const el=document.createElement('div');
+  el.className=`item ${item.done?'done':''}`;
+  el.dataset.reg=item.reg;
+  el.innerHTML=`
+   <div class="tick ${item.done?'checked':''}" onclick="toggle(${i})"></div>
+   <div class="reg">${item.reg}</div>`;
+  (item.done?doneList:pendingList).appendChild(el);
+ });
+ $('pendingCount').textContent=items.filter(i=>!i.done).length;
+ $('doneCount').textContent=items.filter(i=>i.done).length;
+ $('totalCount').textContent=items.length;
 }
 
-// Image selected
-document.getElementById('imgFile').addEventListener('change', e => {
-  selectedImage = e.target.files[0];
-  if(selectedImage){
-    document.getElementById('dropArea').innerHTML = `✅ Image loaded: ${selectedImage.name}`;
-  }
-});
+function toggle(i){items[i].done=!items[i].done;render()}
 
-// DO THE SCAN & MATCH
-async function doScan(){
-  if(!selectedImage) return alert('Select an image first');
-  const regs = getCleanList();
-  if(regs.length === 0) return alert('Paste your registration list first');
-
-  // Reset
-  document.getElementById('results').innerHTML = '';
-  document.getElementById('progWrap').style.display = 'block';
-  document.getElementById('progBar').style.width = '0%';
-  document.getElementById('rawOcr').style.display = 'none';
-
-  // OCR — fast mode
-  const result = await Tesseract.recognize(selectedImage, 'eng', {
-    logger: m => {
-      if(m.status === 'recognizing text'){
-        document.getElementById('progBar').style.width = Math.round(m.progress * 100) + '%';
-      }
-    },
-    tessedit_pageseg_mode: 6,
-    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+// --- SCANNER ---
+$('openScanBtn').onclick=async()=>{
+ $('scanner').classList.add('open');
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({
+   video:{facingMode:'environment',width:1280,height:720},audio:false
   });
+  $('video').srcObject=stream;
+  scanning=true;
+  $('scanStatus').textContent='Plate in the pink box → Scan';
+ }catch(e){
+  $('scanStatus').textContent='❌ Camera blocked — allow camera & use HTTPS';
+ }
+};
 
-  ocrResultText = result.data.text.toUpperCase();
-  document.getElementById('rawOcr').textContent = ocrResultText;
+$('closeScan').onclick=()=>{
+ scanning=false;
+ if(stream)stream.getTracks().forEach(t=>t.stop());
+ stream=null;
+ $('video').srcObject=null;
+ $('scanner').classList.remove('open');
+};
 
-  // Match — remove spaces for clean comparison
-  const cleanOcr = ocrResultText.replace(/\s+/g, '');
-  const foundList = [], missingList = [];
-  regs.forEach(reg => {
-    if(cleanOcr.includes(reg)) foundList.push(reg);
-    else missingList.push(reg);
-  });
+$('scanNow').onclick=async()=>{
+ if(!scanning)return;
+ $('scanStatus').textContent='Reading…';
 
-  // Show results
-  let html = '';
-  if(foundList.length){
-    html += '<h3 style="color:#22c55e;margin:15px 0 5px">✅ FOUND</h3>';
-    foundList.forEach(r => html += `<div class="found">${r}</div>`);
+ // Crop frame to scan area
+ const v=$('video'),c=$('canvas');
+ if(!v.videoWidth)return;
+ const w=v.videoWidth,h=v.videoHeight;
+ const sx=Math.round(w*.07),sy=Math.round(h*.39),sw=Math.round(w*.86),sh=Math.round(h*.22);
+ c.width=sw;c.height=sh;
+ const ctx=c.getContext('2d');
+ ctx.drawImage(v,sx,sy,sw,sh,0,0,sw,sh);
+
+ // OCR — FAST minimal config
+ const result=await Tesseract.recognize(c,'eng',{
+  logger:()=>{},
+  tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  tessedit_pageseg_mode:6
+ });
+
+ const found=clean(result.data.text);
+ // Match against list
+ const match=items.find(i=>found.includes(i.reg));
+
+ if(match && Date.now()-lastHit>2500){ // prevent double trigger
+  lastHit=Date.now();
+  beep();
+  $('scanStatus').textContent='✅ MATCH: '+match.reg;
+
+  // Highlight & scroll to it
+  document.querySelectorAll('.hit').forEach(e=>e.classList.remove('hit'));
+  const el=document.querySelector(`[data-reg="${match.reg}"]`);
+  if(el){
+   el.classList.add('hit');
+   el.scrollIntoView({behavior:'smooth',block:'center'});
+   setTimeout(()=>el.classList.remove('hit'),3000);
   }
-  if(missingList.length){
-    html += '<h3 style="color:#f59e0b;margin:15px 0 5px">⚠️ NOT FOUND</h3>';
-    missingList.forEach(r => html += `<div class="missing">${r}</div>`);
-  }
 
-  document.getElementById('results').innerHTML = html;
-  document.getElementById('found').textContent = foundList.length;
-  document.getElementById('missing').textContent = missingList.length;
-  document.getElementById('progWrap').style.display = 'none';
-}
-
-function toggleRaw(){
-  const el = document.getElementById('rawOcr');
-  el.style.display = el.style.display === 'block' ? 'none' : 'block';
-}
+  setTimeout(()=>$('closeScan').click(),1200); // auto-close scanner
+ }else{
+  $('scanStatus').textContent=found.slice(0,12)||'No reg read — try again';
+ }
+};
 </script>
-
 </body>
 </html>
