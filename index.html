@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
-<title>Live Reg Scanner — Save & Alerts</title>
+<title>Live Reg Scanner — Flashlight</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{
@@ -22,10 +22,12 @@ p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
 textarea{width:100%;height:130px;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:10px;padding:11px;outline:none;font-size:.86rem;resize:none}
 textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #00d9ff22}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn{border:0;border-radius:10px;padding:12px 14px;color:white;font-weight:800;cursor:pointer;flex:1;min-width:140px}
+.btn{border:0;border-radius:10px;padding:12px 10px;color:white;font-weight:800;cursor:pointer;flex:1;min-width:110px;font-size:.9rem}
 .scanbtn{background:linear-gradient(145deg,#ff39aa,#a90068)}
 .process{background:linear-gradient(145deg,#00c8ed,#007d9b)}
 .clear{background:linear-gradient(145deg,#555e69,#303740)}
+.flash-off{background:linear-gradient(145deg,#444,#222)}
+.flash-on{background:linear-gradient(145deg,#ffd700,#cc9900);color:#000;font-weight:900}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
 .stat{background:#10151c;border:1px solid var(--line);border-radius:10px;text-align:center;padding:10px}
 .stat b{display:block;font-size:1.3rem}.stat span{font-size:.67rem;color:var(--muted)}
@@ -62,9 +64,8 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 @keyframes sl{0%{top:42%}50%{top:58%}100%{top:42%}}
 .scan-status{text-align:center;padding:6px;color:#dbe3ea;font-size:.82rem}
 .scan-status.live{color:var(--green)}
-.controls{display:flex;gap:8px;margin-top:6px}
-.controls button{flex:1}
-.close{background:#333}
+.scanner-controls{display:flex;gap:8px;margin-top:6px}
+.scanner-controls button{flex:1}
 </style>
 </head>
 <body>
@@ -72,16 +73,16 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 <!-- Notification Area -->
 <div id="notify" class="notify"></div>
 
-<h1>🚐 Live Reg Scanner — Smart Save</h1>
-<p>✅ Auto-saves • Duplicate skip • Unknown alert • Distinct sounds</p>
+<h1>🚐 Live Reg Scanner + 🔦 Flash</h1>
+<p>✅ Auto-saves • Duplicate skip • Flashlight for night</p>
 
 <div class="panel">
  <div class="panel-title">📋 REGISTRATION LIST</div>
  <textarea id="regBox"></textarea>
  <div class="row">
   <button class="btn process" id="processBtn">⚡ REBUILD LIST</button>
-  <button class="btn scanbtn" id="openScanBtn">📷 START LIVE SCAN</button>
-  <button class="btn clear" id="clearBtn">🗑️ RESET ALL</button>
+  <button class="btn scanbtn" id="openScanBtn">📷 START SCAN</button>
+  <button class="btn clear" id="clearBtn">🗑️ RESET</button>
  </div>
 </div>
 
@@ -102,7 +103,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 <div class="list-title done">✅ COMPLETED</div>
 <div id="doneList"></div>
 
-<!-- SCANNER — Stays at bottom, stays open -->
+<!-- SCANNER — Bottom Bar with Flashlight -->
 <div id="scanner" style="display:none">
  <div class="scanbox">
   <div class="video-wrap">
@@ -110,8 +111,9 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
    <div class="frame"><div class="scanline"></div></div>
   </div>
   <div class="scan-status live" id="scanStatus">🔴 LIVE — point at plate…</div>
-  <div class="controls">
-   <button class="btn close" id="closeScan">✕ STOP SCAN</button>
+  <div class="scanner-controls">
+   <button class="btn flash-off" id="flashBtn">🔦 FLASH</button>
+   <button class="btn close" id="closeScan">✕ STOP</button>
   </div>
  </div>
 </div>
@@ -121,7 +123,9 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 const $=id=>document.getElementById(id);
 const SAVE_KEY = 'regScanner_savedData';
 const regBox=$('regBox'), notify=$('notify'), foundList=$('foundList'), pendingList=$('pendingList'), doneList=$('doneList');
-let items=[], scanning=false, stream=null, lastHit=0, scanLoopActive=false;
+let items=[], scanning=false, stream=null, scanLoopActive=false;
+let lastHit=0;
+let torchTrack=null, torchOn=false; // Flashlight state
 
 // PRE-LOADED BASE LIST
 const PRESET_LIST = `NX22ULU
@@ -268,6 +272,36 @@ function render(){
 function markDone(idx){items[idx].done=true;items[idx].found=false;saveData();render()}
 function unmark(idx){items[idx].done=false;saveData();render()}
 
+// ─── FLASHLIGHT / TORCH ───
+async function toggleFlash(){
+ if(!torchTrack){
+  // Find video track for torch control
+  if(!stream) return;
+  const videoTracks=stream.getVideoTracks();
+  torchTrack=videoTracks[0];
+  if(!torchTrack || !torchTrack.getCapabilities) return showNotify('❌ Flash not supported','unknown');
+ }
+ try{
+  const cap=torchTrack.getCapabilities();
+  if(!cap.torch) return showNotify('❌ Device has no flashlight','unknown');
+  
+  torchOn=!torchOn;
+  await torchTrack.applyConstraints({advanced:[{torch:torchOn}]});
+  
+  const btn=$('flashBtn');
+  if(torchOn){
+   btn.classList.add('flash-on');btn.classList.remove('flash-off');
+   btn.textContent='🔦 ON';
+  }else{
+   btn.classList.remove('flash-on');btn.classList.add('flash-off');
+   btn.textContent='🔦 FLASH';
+  }
+ }catch(e){
+  showNotify('❌ Flash unavailable','unknown');
+ }
+}
+$('flashBtn').onclick=toggleFlash;
+
 // ─── INIT ───
 window.onload=()=>{
  if(!loadData()){
@@ -287,10 +321,17 @@ $('clearBtn').onclick=resetAll;
 $('openScanBtn').onclick=async()=>{
  if(!items.length)return alert('Build list first');
  $('scanner').style.display='block';
+ torchTrack=null;torchOn=false; // Reset torch state
  
  try{
   stream=await navigator.mediaDevices.getUserMedia({
-   video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false
+   video:{
+    facingMode:'environment',
+    width:{ideal:1280},
+    height:{ideal:720},
+    advanced:[{torch:false}] // Start torch off
+   },
+   audio:false
   });
   $('video').srcObject=stream;
   scanning=true;scanLoopActive=true;
@@ -302,8 +343,13 @@ $('openScanBtn').onclick=async()=>{
 };
 
 $('closeScan').onclick=()=>{
+ // Ensure torch turns off when closing
+ if(torchTrack && torchOn){
+  try{torchTrack.applyConstraints({advanced:[{torch:false}]})}catch(e){}
+ }
  scanning=false;scanLoopActive=false;
- if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;
+ if(stream)stream.getTracks().forEach(t=>t.stop());
+ stream=null;torchTrack=null;torchOn=false;
  $('video').srcObject=null;
  $('scanner').style.display='none';
 };
@@ -340,14 +386,14 @@ async function continuousScan(){
       saveData();render();
       setTimeout(()=>$('foundSection').scrollIntoView({behavior:'smooth',block:'start'}),100);
     }else if((match.found || match.done) && Date.now()-lastHit>2500){
-      // ⚠️ DUPLICATE — already found/done
+      // 🔄 DUPLICATE — already processed
       lastHit=Date.now();
       soundDuplicate();
-      showNotify('🔄 DUPLICATE: '+match.reg+' — already processed','duplicate');
+      showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
       $('scanStatus').textContent='🔄 Already processed: '+match.reg;
     }
    }else if(found.length>=5 && Date.now()-lastHit>2500){
-    // ❌ UNKNOWN — only if enough chars read to be plausible
+    // ❌ UNKNOWN
     lastHit=Date.now();
     soundUnknown();
     showNotify('❌ UNKNOWN REGISTRATION','unknown');
