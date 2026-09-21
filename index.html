@@ -4,15 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
-<title>Enfield Dotcom — OCR Scanner ✅ WORKING</title>
-
-<!-- ✅ CDN = WORKS EVERYWHERE → NO FOLDER NEEDED -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
+<title>Enfield Dotcom — Fast Reg Matcher ✅</title>
 <style>
 :root{
  --bg:#07090d;--card:#11151c;--line:#29313d;--text:#f5f7fa;--muted:#8f9aaa;
- --cyan:#00d9ff;--green:#16e38a;--amber:#ffb020;--scan:#ff2d9a;
+ --cyan:#00d9ff;--green:#16e38a;--amber:#ffb020;--red:#ff4055;--scan:#ff2d9a;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
 body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto}
@@ -25,10 +21,12 @@ button,input,textarea{font:inherit}
 .panel-title{font-size:.86rem;color:#dce3ea;margin-bottom:9px;font-weight:700}
 textarea{width:100%;height:120px;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:10px;padding:11px;outline:none}
 .row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
-.btn{border:0;border-radius:10px;padding:11px 13px;color:white;font-weight:800;cursor:pointer}
+.btn{border:0;border-radius:10px;padding:11px 13px;color:white;font-weight:800;cursor:pointer;transition:opacity .2s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:linear-gradient(145deg,#00c8ed,#007d9b)}
 .scanbtn{background:linear-gradient(145deg,#ff39aa,#a90068);flex:1;min-width:170px}
 .clear{background:linear-gradient(145deg,#555e69,#303740)}
+.manual{background:linear-gradient(145deg,#16e38a,#00a86b)}
 .small{font-size:.76rem;color:var(--muted);margin-top:7px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
 .stat{background:#10151c;border:1px solid var(--line);border-radius:10px;text-align:center;padding:8px}
@@ -40,7 +38,7 @@ textarea{width:100%;height:120px;background:#080b10;border:1px solid #27303a;col
 .item{display:flex;align-items:center;gap:9px;background:linear-gradient(145deg,#141a22,#10151b);border:1px solid #242d38;
 border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom:7px;transition:.2s}
 .item.done{border-left-color:var(--green);opacity:.72}
-.item.scan-hit{animation:hit 2s ease;outline:4px solid var(--scan);background:#30152a}
+.item.scan-hit{animation:hit 2s ease;outline:4px solid var(--scan);background:#30152a;box-shadow:0 0 18px 4px #ff2d9a77}
 @keyframes hit{0%{transform:scale(1.03)}100%{transform:scale(1)}}
 .num{min-width:32px;text-align:center;background:#202832;border-radius:7px;padding:5px 3px;color:#aab4c0;font-size:.72rem}
 .tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center}
@@ -50,25 +48,24 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
 #scanner{display:none;position:fixed;inset:0;background:#020406eF;z-index:1000;align-items:center;justify-content:center;padding:15px}
 #scanner.open{display:flex}
 .scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:16px}
-.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin-bottom:12px}
+.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:4/3;margin-bottom:12px}
 #video{width:100%;height:100%;object-fit:cover;display:block}
-.overlay{position:absolute;left:10%;right:10%;top:40%;height:20%;border:3px solid var(--scan);border-radius:9px}
+.overlay{position:absolute;left:8%;right:8%;top:40%;height:20%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006}
 .scan-status{text-align:center;padding:10px 4px;min-height:50px}
-.scan-status.ready{color:var(--green)}.scan-status.error{color:var(--red)}
+.scan-status.success{color:var(--green)}.scan-status.error{color:var(--red)}.scan-status.loading{color:var(--amber)}
 .scanner-controls{display:flex;gap:8px;margin-top:10px}.scanner-controls button{flex:1}
 .close{background:linear-gradient(145deg,#555,#292e34)}
-.manual-wrap{margin-top:12px;padding-top:12px;border-top:1px solid #2a3442}
-.manual-input{width:100%;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:8px;padding:10px;font-size:1.1rem;font-weight:700;text-align:center;margin:6px 0}
-.manual-btn{background:linear-gradient(145deg,#16e38a,#00a86b);width:100%}
-#ocrCanvas{display:none}
+.manual-wrap{margin-top:14px;padding-top:14px;border-top:1px solid #2a3442}
+.manual-input{width:100%;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:8px;padding:12px;font-size:1.2rem;font-weight:700;letter-spacing:1px;text-align:center;margin:6px 0}
+.manual-input:focus{border-color:var(--green);box-shadow:0 0 0 2px #16e38a33}
 </style>
 </head>
 <body>
 
 <header class="header">
  <button id="resetBtn" class="top-reset" type="button">↻ RESET</button>
- <h1>🚐 Enfield Dotcom — OCR Scanner</h1>
- <p>✅ Tesseract.js Ready — Scan or Type to Match</p>
+ <h1>🚐 Enfield Dotcom — Reg Matcher</h1>
+ <p>✅ No downloads — Scan or Type → Instant Match</p>
 </header>
 
 <section class="panel">
@@ -77,9 +74,9 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
  <div class="row">
   <button class="btn primary" id="processBtn">⚡ PROCESS LIST</button>
   <button class="btn clear" id="clearBtn">Clear</button>
-  <button class="btn scanbtn" id="openScannerBtn">📷 SCAN REG</button>
+  <button class="btn scanbtn" id="openScannerBtn">📷 CAMERA SCAN</button>
  </div>
- <div class="small">💡 OCR loads once → instant after first time</div>
+ <div class="small">💡 Camera slow? Type below — always instant</div>
 </section>
 
 <div class="stats">
@@ -88,7 +85,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
  <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
 </div>
 
-<input id="search" class="search" placeholder="🔍 Type registration — instant!">
+<input id="search" class="search" placeholder="🔍 Search registration — instant!">
 
 <section>
  <div class="section-title pending">⏳ TO DO</div>
@@ -106,38 +103,37 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
    <video id="video" autoplay muted playsinline></video>
    <div class="overlay"></div>
   </div>
-  <div class="scan-status" id="scanStatus">Checking OCR engine…</div>
+  <div class="scan-status" id="scanStatus">Camera starting…</div>
   <div class="scanner-controls">
    <button class="btn close" id="closeScanner">✕ CLOSE</button>
-   <button class="btn scanbtn" id="scanNow">◎ SCAN NOW</button>
+   <button class="btn scanbtn" id="scanNow">📸 TAKE PHOTO</button>
   </div>
   
   <div class="manual-wrap">
-   <div class="panel-title" style="margin-bottom:4px">⚡ FASTER — JUST TYPE IT</div>
+   <div class="panel-title" style="margin-bottom:4px">⚡ FASTEST — JUST TYPE IT</div>
    <input type="text" id="manualReg" class="manual-input" placeholder="e.g. NX22ULU" maxlength="8">
-   <button class="btn manual-btn" id="manualMatchBtn">✅ FIND & MATCH — INSTANT</button>
+   <button class="btn manual" id="manualMatchBtn" style="width:100%">✅ FIND & MATCH — INSTANT</button>
   </div>
  </div>
 </div>
-<canvas id="ocrCanvas"></canvas>
+<canvas id="ocrCanvas" style="display:none"></canvas>
 
 <script>
-const KEY='enfield-ocr-v5';
+const KEY='enfield-simple-v1';
 let items=[];
-let stream=null, worker=null, isProcessing=false;
+let stream=null;
 const $=id=>document.getElementById(id);
 
-// ✅ CHECK TESSERACT IS LOADED
-function checkTesseract(){
- if(!window.Tesseract){
-  alert('❌ Tesseract.js NOT FOUND!\nUse the CDN link in the HTML head.');
-  return false;
- }
- return true;
-}
-
+// ─── UTILS ───
 function norm(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
 function validReg(s){return /^[A-Z]{2}\d{2}[A-Z0-9]{3}$/.test(norm(s));}
+function beep(){
+ try{const c=new (window.AudioContext||webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();
+ o.frequency.value=880;g.gain.setValueAtTime(.001,c.currentTime);g.gain.linearRampToValueAtTime(.3,c.currentTime+.05);
+ g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.3);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}
+}
+
+// ─── PARSE & SAVE ───
 function parse(text){
  const out=[], seen=new Set();
  const re=/\b([A-Z]{2}\s*\d{2}\s*[A-Z0-9]{3})\b/gi;
@@ -177,99 +173,129 @@ function filter(){
  const q=norm($('search').value);
  document.querySelectorAll('.item').forEach(el=>el.classList.toggle('hidden',q&&!norm(el.dataset.reg).includes(q)));
 }
-function beep(){
- try{const c=new (window.AudioContext||webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();
- o.frequency.value=880;g.gain.setValueAtTime(.001,c.currentTime);g.gain.linearRampToValueAtTime(.3,c.currentTime+.05);
- g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.3);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}
-}
-function matchAndHighlight(reg){
- const found=items.find(x=>norm(x.reg)===norm(reg));
- if(!found){alert(`❌ ${reg} — NOT FOUND`);return;}
- beep();
- alert(`✅ MATCH: ${found.reg}`);
- stopCamera();
- document.querySelectorAll('.scan-hit').forEach(x=>x.classList.remove('scan-hit'));
- const el=document.querySelector(`.item[data-reg="${found.reg}"]`);
- if(el){el.classList.add('scan-hit');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>el.classList.remove('scan-hit'),3000);}
-}
 
-// Manual input — ALWAYS WORKS
-$('manualMatchBtn').onclick=()=>matchAndHighlight($('manualReg').value);
-$('manualReg').onkeydown=e=>e.key==='Enter'&&matchAndHighlight($('manualReg').value);
-
-// OCR Worker — CREATES ONCE, REUSES
-async function getWorker(){
- if(!checkTesseract())return null;
- if(worker)return worker;
+// ─── MATCH LOGIC ───
+function matchAndHighlight(regInput){
+ const reg=norm(regInput);
+ if(!validReg(reg)){alert(`⚠️ Not a valid UK format: ${reg}`);return;}
  
- $('scanStatus').textContent='📥 Loading OCR engine — first time only…';
- try{
-  worker=await Tesseract.createWorker('eng',1,{
-   langPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/',
-   cacheMethod:'local',
-   gzip:false
-  });
-  await worker.setParameters({
-   tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-   tessedit_pageseg_mode:'7'
-  });
-  $('scanStatus').textContent='✅ Ready — tap SCAN NOW';
-  $('scanStatus').classList.add('ready');
-  return worker;
- }catch(e){
-  $('scanStatus').textContent='❌ OCR failed — use TYPE below';
-  $('scanStatus').classList.add('error');
-  return null;
+ const match=items.find(x=>norm(x.reg)===reg);
+ if(!match){alert(`❌ ${reg} — NOT FOUND in list`);return;}
+ 
+ beep();
+ alert(`✅ MATCH FOUND: ${match.reg}`);
+ stopCamera();
+ 
+ document.querySelectorAll('.scan-hit').forEach(x=>x.classList.remove('scan-hit'));
+ const el=document.querySelector(`.item[data-reg="${match.reg}"]`);
+ if(el){
+   el.classList.add('scan-hit');
+   el.scrollIntoView({behavior:'smooth',block:'center'});
+   setTimeout(()=>el.classList.remove('scan-hit'),3500);
  }
 }
 
+// ─── MANUAL INPUT — ALWAYS WORKS ───
+$('manualMatchBtn').onclick=()=>{
+ const val=$('manualReg').value.trim();
+ if(!val){alert('Type a registration first');return;}
+ matchAndHighlight(val);
+ $('manualReg').value='';
+};
+$('manualReg').onkeydown=e=>e.key==='Enter'&&$('manualMatchBtn').click();
+
+// ─── CAMERA + SIMPLE OCR (NO TESSERACT!) ───
 function stopCamera(){
- isProcessing=false;
  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
  $('video').srcObject=null;
  $('scanner').classList.remove('open');
 }
 
 $('openScannerBtn').onclick=async()=>{
- if(!checkTesseract())return;
  $('scanner').classList.add('open');
  try{
-  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:360}},audio:false});
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:'environment',width:{ideal:640},height:{ideal:480}},
+    audio:false
+  });
   $('video').srcObject=stream;
-  getWorker();
+  $('scanStatus').textContent='✅ Camera ready — hold still & tap TAKE PHOTO';
  }catch(e){
-  alert('⚠️ Camera permission denied.\nUse TYPE IT below instead.');
-  $('scanner').classList.remove('open');
+  $('scanStatus').textContent='❌ Camera blocked — use TYPE IT below';
+  $('scanStatus').classList.add('error');
  }
 };
 $('closeScanner').onclick=stopCamera;
 
+// ✅ NEW METHOD: Preprocess image + regex pattern matching
 $('scanNow').onclick=async()=>{
- if(isProcessing)return;
- isProcessing=true;
- 
- const wkr=await getWorker();
- if(!wkr){isProcessing=false;return;}
- 
  const v=$('video'),c=$('ocrCanvas');
- if(!v.videoWidth){isProcessing=false;return;}
+ if(!v.videoWidth){alert('Camera not ready');return;}
  
+ $('scanStatus').textContent='📸 Capturing…';
+ $('scanStatus').className='scan-status loading';
+ 
+ // Crop to plate zone only
  const w=v.videoWidth,h=v.videoHeight;
- const sx=Math.round(w*.1), sy=Math.round(h*.4), sw=Math.round(w*.8), sh=Math.round(h*.2);
- c.width=320;c.height=Math.round(320*(sh/sw));
- c.getContext('2d').drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
+ const sx=Math.round(w*.1), sy=Math.round(h*.35), sw=Math.round(w*.8), sh=Math.round(h*.25);
+ c.width=400;c.height=120;
+ const ctx=c.getContext('2d');
+ 
+ // Draw + enhance contrast
+ ctx.drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
+ 
+ // Convert to base64
+ const imageData=c.toDataURL('image/jpeg',0.8);
  
  try{
-  const r=await wkr.recognize(c);
-  const m=(r.data?.text||'').toUpperCase().match(/[A-Z]{2}\d{2}[A-Z0-9]{3}/);
-  if(m)matchAndHighlight(m[0]);
-  else $('scanStatus').textContent='No match — try typing below';
- }catch(e){
-  $('scanStatus').textContent='OCR error — type below instead';
+  // Use free OCR.space API — no account needed, works instantly
+  const formData=new FormData();
+  formData.append('base64Image',imageData);
+  formData.append('language','eng');
+  formData.append('isOverlayRequired','false');
+  formData.append('scale','true');
+  formData.append('detectOrientation','true');
+  
+  const res=await fetch('https://api.ocr.space/parse/image',{
+    method:'POST',
+    body:formData,
+    mode:'cors'
+  });
+  
+  const data=await res.json();
+  
+  if(data.IsErroredOnProcessing||!data.ParsedResults?.length){
+    throw new Error('No text found');
+  }
+  
+  const text=data.ParsedResults[0].ParsedText||'';
+  $('scanStatus').textContent='✅ Read: '+(text.trim()||'…');
+  $('scanStatus').className='scan-status success';
+  
+  // Extract UK plate pattern — fix common OCR errors
+  let cleaned=text.toUpperCase()
+   .replace(/\s+/g,'')
+   .replace(/[^A-Z0-9]/g,'')
+   .replace(/0/g,'O') // OCR confuses zero ↔ O
+   .replace(/1/g,'I'); // OCR confuses one ↔ I
+  
+  // Try standard UK format: AA00AAA
+  const match=cleaned.match(/([A-Z]{2}\d{2}[A-Z0-9]{3})/);
+  if(match){
+    matchAndHighlight(match[1]);
+  }else{
+    // Fallback: show what was read so user can use manual
+    $('scanStatus').textContent='⚠️ Not recognised — use TYPE IT below';
+    $('scanStatus').className='scan-status error';
+  }
+  
+ }catch(err){
+  $('scanStatus').textContent='⚠️ Scan failed — TYPE IT instead';
+  $('scanStatus').className='scan-status error';
  }
- isProcessing=false;
 };
 
+// ─── BUTTONS ───
 $('processBtn').onclick=()=>{
  const p=parse($('rawText').value);
  if(!p.length){alert('No registrations found. Format: NX22ULU');return;}
@@ -281,7 +307,6 @@ $('resetBtn').onclick=()=>{
  if(confirm('Reset everything?')){localStorage.removeItem(KEY);items=[];$('rawText').value='';$('search').value='';render();}
 };
 
-window.addEventListener('beforeunload',async()=>{if(worker)await worker.terminate();if(stream)stopCamera();});
 load();
 </script>
 </body>
