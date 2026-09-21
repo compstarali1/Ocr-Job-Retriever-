@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
-<title>Live Reg Scanner — Pre‑Loaded</title>
+<title>Live Reg Scanner — Found to Top</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{
  --bg:#07090d;--card:#11151c;--line:#29313d;
  --text:#f5f7fa;--muted:#8f9aaa;--cyan:#00d9ff;
  --green:#16e38a;--amber:#ffb020;--scan:#ff2d9a;
+ --found-top:#00b8ff;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
 body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto}
@@ -31,49 +32,58 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #00d9ff22}
 #pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
 .list-title{font-size:.86rem;padding:8px 4px 6px;border-bottom:1px solid var(--line);margin:10px 0 5px}
 .pending{color:var(--amber)}.done{color:var(--green)}
+.found-section{border-bottom:1px dashed #224455;margin-bottom:10px;padding-bottom:6px}
+.found-title{color:var(--found-top);font-size:.8rem;font-weight:bold;margin:4px 0}
 .item{display:flex;align-items:center;gap:10px;background:linear-gradient(145deg,#141a22,#10151b);border:1px solid #242d38;
-border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom:7px;transition:.2s}
+border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom:7px;transition:.3s ease}
+.item.found-top{border-left-color:var(--found-top);background:#0f2533;box-shadow:0 0 14px 3px #00b8ff33}
 .item.done{border-left-color:var(--green);opacity:.75}
-.item.hit{border-color:var(--scan);background:#2f1429;box-shadow:0 0 20px 5px #ff2d9a66;animation:pop .4s ease}
-@keyframes pop{0%{transform:scale(1.04)}100%{transform:scale(1)}}
+.item.just-found{animation:flash .6s ease}
+@keyframes flash{0%{transform:scale(1.03);box-shadow:0 0 25px 5px #ff2d9a}100%{transform:scale(1)}}
 .reg{font-size:1rem;font-weight:900;letter-spacing:.7px}
 .tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
 .tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
 .hidden{display:none!important}
-#scanner{display:none;position:fixed;inset:0;background:#020406ef;z-index:999;align-items:center;justify-content:center;padding:15px}
-#scanner.open{display:flex}
-.scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:14px}
-.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:10px 0}
+/* Scanner — stays open */
+#scanner{position:fixed;bottom:0;left:0;right:0;background:#020406f2;z-index:999;border-top:1px solid #333;padding:12px 15px}
+.scanbox{max-width:540px;margin:0 auto}
+.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:8px 0}
 #video{width:100%;height:100%;object-fit:cover;display:block}
 .frame{position:absolute;left:7%;right:7%;top:39%;height:22%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006;pointer-events:none}
 .scanline{position:absolute;left:4%;right:4%;top:50%;height:2px;background:#ff65bd;box-shadow:0 0 10px #ff2d9a;animation:sl 1.5s linear infinite}
 @keyframes sl{0%{top:42%}50%{top:58%}100%{top:42%}}
-.scan-status{text-align:center;padding:8px;color:#dbe3ea;font-size:.82rem}
+.scan-status{text-align:center;padding:6px;color:#dbe3ea;font-size:.82rem}
 .scan-status.live{color:var(--green)}
-.controls{display:flex;gap:8px;margin-top:8px}
+.controls{display:flex;gap:8px;margin-top:6px}
 .controls button{flex:1}
 .close{background:#333}
 </style>
 </head>
 <body>
 
-<h1>🚐 Live Reg Scanner — Ready List</h1>
-<p>✅ List pre‑loaded — just SCAN → Auto‑match → Beep → Jump</p>
+<h1>🚐 Live Scanner — Found to Top</h1>
+<p>✅ Scanner stays open • Found plates move to TOP • Tick when done</p>
 
 <div class="panel">
- <div class="panel-title">📋 REGISTRATION LIST (pre‑loaded — edit if needed)</div>
+ <div class="panel-title">📋 REGISTRATION LIST</div>
  <textarea id="regBox"></textarea>
  <div class="row">
   <button class="btn process" id="processBtn">⚡ REBUILD LIST</button>
-  <button class="btn scanbtn" id="openScanBtn">📷 SCAN REG</button>
+  <button class="btn scanbtn" id="openScanBtn">📷 START LIVE SCAN</button>
   <button class="btn clear" id="clearBtn">Clear</button>
  </div>
 </div>
 
 <div class="stats">
+ <div class="stat"><b id="foundCount">0</b><span>FOUND</span></div>
  <div class="stat"><b id="pendingCount">0</b><span>PENDING</span></div>
  <div class="stat"><b id="doneCount">0</b><span>DONE</span></div>
  <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
+</div>
+
+<div id="foundSection" class="found-section" style="display:none">
+ <div class="found-title">🔵 FOUND — READY</div>
+ <div id="foundList"></div>
 </div>
 
 <div class="list-title pending">⏳ PENDING</div>
@@ -81,16 +91,16 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 <div class="list-title done">✅ COMPLETED</div>
 <div id="doneList"></div>
 
-<div id="scanner">
+<!-- SCANNER — BOTTOM, STAYS OPEN -->
+<div id="scanner" style="display:none">
  <div class="scanbox">
-  <div class="panel-title">📷 LIVE SCAN — Keep plate in frame</div>
   <div class="video-wrap">
    <video id="video" autoplay muted playsinline></video>
    <div class="frame"><div class="scanline"></div></div>
   </div>
-  <div class="scan-status live" id="scanStatus">🔴 LIVE — scanning…</div>
+  <div class="scan-status live" id="scanStatus">🔴 LIVE — point at plate…</div>
   <div class="controls">
-   <button class="btn close" id="closeScan">✕ STOP & CLOSE</button>
+   <button class="btn close" id="closeScan">✕ STOP SCAN</button>
   </div>
  </div>
 </div>
@@ -98,10 +108,10 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 
 <script>
 const $=id=>document.getElementById(id);
-const regBox=$('regBox'), pendingList=$('pendingList'), doneList=$('doneList');
+const regBox=$('regBox'), foundList=$('foundList'), pendingList=$('pendingList'), doneList=$('doneList');
 let items=[], scanning=false, stream=null, lastHit=0, scanLoopActive=false;
 
-// YOUR FULL LIST — PRE‑LOADED
+// PRE-LOADED LIST
 const PRESET_LIST = `NX22ULU
 NX22ULV
 NX22UMD
@@ -150,10 +160,7 @@ NX72VLC
 NX72VLT
 NX72VLO`;
 
-// Normalise
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
-
-// Beep
 function beep(){
  try{
   const c=new (window.AudioContext||webkitAudioContext);
@@ -165,74 +172,75 @@ function beep(){
   o.start();o.stop(c.currentTime+.35);
  }catch(e){}
 }
-
-// Build list
 function buildList(text){
- return text.split('\n')
-  .map(r=>clean(r))
-  .filter(r=>r.length>4)
-  .map(reg=>({reg,done:false}));
+ return text.split('\n').map(r=>clean(r)).filter(r=>r.length>4)
+  .map(reg=>({reg,done:false,found:false}));
 }
-
-// Initial load — auto‑process
-window.onload=()=>{
- regBox.value=PRESET_LIST;
- items=buildList(PRESET_LIST);
- render();
-};
-
-$('processBtn').onclick=()=>{
- items=buildList(regBox.value);
- if(!items.length)return alert('Paste registrations first');
- render();
-};
-
+window.onload=()=>{regBox.value=PRESET_LIST;items=buildList(PRESET_LIST);render()};
+$('processBtn').onclick=()=>{items=buildList(regBox.value);render()};
 $('clearBtn').onclick=()=>{regBox.value='';regBox.focus()};
 
 function render(){
- pendingList.innerHTML='';doneList.innerHTML='';
- items.forEach((item,i)=>{
+ const foundItems=items.filter(i=>i.found && !i.done);
+ const pendingItems=items.filter(i=>!i.found && !i.done);
+ const doneItems=items.filter(i=>i.done);
+
+ $('foundSection').style.display=foundItems.length?'block':'none';
+ foundList.innerHTML='';pendingList.innerHTML='';doneList.innerHTML='';
+
+ foundItems.forEach((item,i)=>{
   const el=document.createElement('div');
-  el.className=`item ${item.done?'done':''}`;
+  el.className='item found-top'+(item.justFound?' just-found':'');
   el.dataset.reg=item.reg;
-  el.innerHTML=`
-   <div class="tick ${item.done?'checked':''}" onclick="toggle(${i})"></div>
-   <div class="reg">${item.reg}</div>`;
-  (item.done?doneList:pendingList).appendChild(el);
+  el.innerHTML=`<div class="tick" onclick="markDone(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;
+  foundList.appendChild(el);
+  if(item.justFound) setTimeout(()=>{item.justFound=false;render()},600);
  });
- $('pendingCount').textContent=items.filter(i=>!i.done).length;
- $('doneCount').textContent=items.filter(i=>i.done).length;
+ pendingItems.forEach((item,i)=>{
+  const el=document.createElement('div');
+  el.className='item';
+  el.dataset.reg=item.reg;
+  el.innerHTML=`<div class="tick" onclick="markDone(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;
+  pendingList.appendChild(el);
+ });
+ doneItems.forEach((item,i)=>{
+  const el=document.createElement('div');
+  el.className='item done';
+  el.innerHTML=`<div class="tick checked" onclick="unmark(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;
+  doneList.appendChild(el);
+ });
+
+ $('foundCount').textContent=foundItems.length;
+ $('pendingCount').textContent=pendingItems.length;
+ $('doneCount').textContent=doneItems.length;
  $('totalCount').textContent=items.length;
 }
+function markDone(idx){items[idx].done=true;items[idx].found=false;render()}
+function unmark(idx){items[idx].done=false;render()}
 
-function toggle(i){items[i].done=!items[i].done;render()}
-
-// LIVE SCANNER
+// START LIVE SCAN — stays open
 $('openScanBtn').onclick=async()=>{
- if(!items.length)return alert('No list loaded');
- $('scanner').classList.add('open');
+ if(!items.length)return alert('Build list first');
+ $('scanner').style.display='block';
  
  try{
   stream=await navigator.mediaDevices.getUserMedia({
    video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false
   });
   $('video').srcObject=stream;
-  scanning=true;
-  scanLoopActive=true;
-  $('scanStatus').textContent='🔴 LIVE — point at plate…';
-  $('scanStatus').classList.add('live');
+  scanning=true;scanLoopActive=true;
+  $('scanStatus').textContent='🔴 LIVE — scanning…';
   continuousScan();
  }catch(e){
-  $('scanStatus').textContent='❌ Camera blocked — allow camera & use HTTPS';
+  $('scanStatus').textContent='❌ Camera blocked — allow camera access';
  }
 };
 
 $('closeScan').onclick=()=>{
  scanning=false;scanLoopActive=false;
- if(stream)stream.getTracks().forEach(t=>t.stop());
- stream=null;
+ if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;
  $('video').srcObject=null;
- $('scanner').classList.remove('open');
+ $('scanner').style.display='none';
 };
 
 async function continuousScan(){
@@ -251,22 +259,15 @@ async function continuousScan(){
     tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
     tessedit_pageseg_mode:6
    });
-
    const found=clean(result.data.text);
-   const match=items.find(i=>!i.done && found.includes(i.reg));
-
+   const match=items.find(i=>!i.done && !i.found && found.includes(i.reg));
    if(match && Date.now()-lastHit>2500){
     lastHit=Date.now();
+    match.found=true;match.justFound=true;
     beep();
-    $('scanStatus').textContent='✅ FOUND: '+match.reg;
-    
-    document.querySelectorAll('.hit').forEach(e=>e.classList.remove('hit'));
-    const el=document.querySelector(`[data-reg="${match.reg}"]`);
-    if(el){
-     el.classList.add('hit');
-     el.scrollIntoView({behavior:'smooth',block:'center'});
-     setTimeout(()=>el.classList.remove('hit'),3000);
-    }
+    $('scanStatus').textContent='✅ FOUND: '+match.reg+' — at top!';
+    render();
+    setTimeout(()=>$('foundSection').scrollIntoView({behavior:'smooth',block:'start'}),100);
    }
   }catch(e){}
  }
