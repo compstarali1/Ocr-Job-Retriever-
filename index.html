@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Reg Scanner — Flashlight Permission Fixed</title>
+<title>Reg Scanner — Flashlight Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{
@@ -14,8 +14,7 @@
  --found-top:#0cf;--red:#f44;--purple:#a5f;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
-html,body{background:#000;color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto;padding-bottom:200px}
-body.screen-max{background:#fff;filter:brightness(1.4);transition:all .2s}
+html,body{background:#000;color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto;padding-bottom:180px}
 h1{font-size:1.1rem;color:var(--cyan);margin-bottom:4px}
 p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
 .panel{background:#1a1a1a;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
@@ -29,7 +28,6 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 .clear{background:linear-gradient(145deg,#555,#333)}
 .torch-idle{background:#2a2a2a;border:1px solid #444}
 .torch-active{background:linear-gradient(145deg,#ffd700,#ffaa00);color:#000;font-weight:900;box-shadow:0 0 15px #ffd70066}
-.screen-active{background:linear-gradient(145deg,#fff,#eee);color:#000;font-weight:bold;border:1px solid #ff0;box-shadow:0 0 15px #fff4}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
 .stat{background:#1a1a1a;border:1px solid #333;border-radius:10px;text-align:center;padding:10px}
 .stat b{display:block;font-size:1.3rem}.stat span{font-size:.67rem;color:var(--muted)}
@@ -60,8 +58,8 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 .scanline{position:absolute;left:4%;right:4%;top:50%;height:2px;background:#f6b;box-shadow:0 0 10px #f29;animation:sl 1.5s linear infinite}
 @keyframes sl{0%{top:42%}50%{top:58%}100%{top:42%}}
 .scan-status{text-align:center;padding:6px;color:#ddd;font-size:.8rem;line-height:1.4}
-.scanner-controls{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.scanner-controls button{flex:minmax(90px,1)}
+.scanner-controls{display:flex;gap:8px;margin-top:8px}
+.scanner-controls button{flex:1}
 .close{background:#333}
 </style>
 </head>
@@ -69,8 +67,8 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 
 <div id="notify" class="notify"></div>
 
-<h1>🚐 Reg Scanner — 🔦 Flashlight Fixed</h1>
-<p>✅ Permission requested • Works on all modern phones</p>
+<h1>🚐 Reg Scanner — 🔦 Flashlight Direct</h1>
+<p>Only camera flashlight — no screen light</p>
 
 <div class="panel">
  <div class="panel-title">📋 REGISTRATION LIST</div>
@@ -107,8 +105,7 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
   </div>
   <div class="scan-status" id="scanStatus">🔴 Starting…</div>
   <div class="scanner-controls">
-   <button class="btn torch-idle" id="torchBtn">🔦 TORCH</button>
-   <button class="btn torch-idle" id="screenBtn">💡 SCREEN LIGHT</button>
+   <button class="btn torch-idle" id="torchBtn">🔦 FLASHLIGHT</button>
    <button class="btn close" id="closeScan">✕ STOP</button>
   </div>
  </div>
@@ -120,7 +117,7 @@ const $=id=>document.getElementById(id);
 const SAVE_KEY = 'regScanner_savedData';
 const regBox=$('regBox'), notify=$('notify');
 let items=[], stream=null, scanLoopActive=false, lastHit=0;
-let torchTrack=null, torchOn=false, wakeLock=null;
+let torchOn=false;
 
 const PRESET_LIST = `NX22ULU
 NX22ULV
@@ -178,90 +175,54 @@ function soundDuplicate(){try{const c=new (window.AudioContext||webkitAudioConte
 
 function showNotify(msg, type='info'){notify.className='notify show '+type;notify.textContent=msg;setTimeout(()=>notify.classList.remove('show'),1500)}
 
-// ─── TORCH / FLASHLIGHT — Fixed Permission Method ───
-async function getTorchTrack(){
- if(!stream) return null;
- const videoTracks = stream.getVideoTracks().filter(t => t.readyState === 'live');
- if(!videoTracks.length) return null;
- 
- // Try each track until we find one with torch capability
- for(const track of videoTracks){
-  if(!track.getCapabilities) continue;
-  const caps = track.getCapabilities();
-  // Check all possible light modes
-  if(caps.torch || caps.fillLightMode || (caps.advanced && caps.advanced.some(a=>a.torch || a.fillLightMode))){
-   return track;
+// ─── DIRECT FLASHLIGHT CONTROL ───
+async function setTorchState(on){
+ if(!stream) return false;
+ const track = stream.getVideoTracks().find(t => t.readyState === 'live');
+ if(!track) return false;
+ if(!track.applyConstraints) return false;
+
+ try{
+  // Method 1: Direct torch
+  await track.applyConstraints({advanced: [{ torch: on }]});
+  return true;
+ }catch(e1){
+  try{
+   // Method 2: fillLightMode
+   await track.applyConstraints({advanced: [{ fillLightMode: on ? 'flash' : 'off' }]});
+   return true;
+  }catch(e2){
+   try{
+    // Method 3: All advanced keys
+    await track.applyConstraints({advanced: [{ torch: on, fillLightMode: on ? 'flash' : 'off' }]});
+    return true;
+   }catch(e3){
+    return false;
+   }
   }
  }
- return videoTracks[0]; // Fallback to first live track
 }
 
 async function toggleTorch(){
  if(!stream) return showNotify('❌ Start scanner first','unknown');
  
- torchTrack = torchTrack || await getTorchTrack();
- if(!torchTrack) return showNotify('❌ No camera track found','unknown');
- 
- try{
-  const caps = torchTrack.getCapabilities?.() || {};
-  torchOn = !torchOn;
-  
-  // Method 1: Standard torch API
-  if(caps.torch){
-   await torchTrack.applyConstraints({advanced: [{ torch: torchOn }]});
-  }
-  // Method 2: fillLightMode fallback
-  else if(caps.fillLightMode){
-   const mode = torchOn ? 'flash' : 'off';
-   await torchTrack.applyConstraints({advanced: [{ fillLightMode: mode }]});
-  }
-  // Method 3: Generic brightness control
-  else{
-   await torchTrack.applyConstraints({
-    advanced: [{ exposureMode: torchOn ? 'manual' : 'auto' }]
-   }).catch(()=>{});
-   if(torchOn) showNotify('⚠️ Torch not supported — use Screen Light','info');
-   torchOn = !torchOn; // Revert
-   return;
-  }
-  
-  // Update button
-  const btn = $('torchBtn');
+ torchOn = !torchOn;
+ const ok = await setTorchState(torchOn);
+ const btn = $('torchBtn');
+
+ if(ok){
   if(torchOn){
    btn.classList.add('torch-active'); btn.classList.remove('torch-idle');
    btn.textContent='🔦 ON';
-   showNotify('✅ Torch ON — light should be on!','found');
+   showNotify('✅ FLASHLIGHT ON','found');
   }else{
    btn.classList.remove('torch-active'); btn.classList.add('torch-idle');
-   btn.textContent='🔦 TORCH';
-  }
- }catch(err){
-  console.error('Torch error:', err);
-  showNotify('❌ Torch blocked — use SCREEN LIGHT','unknown');
-  torchOn = false;
- }
-}
-
-// ─── SCREEN LIGHT — Always Works ───
-let screenLightOn = false;
-async function toggleScreenLight(){
- screenLightOn = !screenLightOn;
- const btn = $('screenBtn');
- 
- if(screenLightOn){
-  document.body.classList.add('screen-max');
-  btn.classList.add('screen-active'); btn.classList.remove('torch-idle');
-  btn.textContent='💡 MAX';
-  showNotify('✅ Screen max brightness ON','found');
-  // Keep screen awake
-  if('wakeLock' in navigator){
-   try{ wakeLock = await navigator.wakeLock.request('screen') }catch(e){}
+   btn.textContent='🔦 FLASHLIGHT';
   }
  }else{
-  document.body.classList.remove('screen-max');
-  btn.classList.remove('screen-active'); btn.classList.add('torch-idle');
-  btn.textContent='💡 SCREEN LIGHT';
-  if(wakeLock){ try{ await wakeLock.release() }catch(e){} wakeLock = null }
+  torchOn = !torchOn; // revert
+  showNotify('❌ FLASHLIGHT NOT SUPPORTED ON THIS DEVICE/BROWSER','unknown');
+  $('scanStatus').innerHTML='❌ Your browser/phone does not allow flashlight control.<br>Use Chrome on Android for full control.';
  }
 }
 
@@ -283,63 +244,51 @@ function render(){
 function markDone(idx){items[idx].done=true;items[idx].found=false;saveData();render()}
 function unmark(idx){items[idx].done=false;saveData();render()}
 
-// ─── START SCAN — Permission-First Approach ───
+// ─── START SCAN ───
 $('openScanBtn').onclick=async()=>{
  if(!items.length)return alert('Build list first');
  
  $('scanner').style.display='block';
- $('scanStatus').innerHTML='🔐 Requesting camera permission…<br>Tap "Allow" when prompted';
+ $('scanStatus').textContent='🔐 Requesting camera… Allow when prompted';
  
- // ⚠️ Permission explicitly requested FIRST
  try{
   stream = await navigator.mediaDevices.getUserMedia({
    video: {
-    facingMode: { ideal: 'environment' },
+    facingMode: 'environment',
     width: { ideal: 1280 },
-    height: { ideal: 720 },
-    // Explicitly request torch capability
-    advanced: [{ torch: false }]
+    height: { ideal: 720 }
    },
    audio: false
   });
   
-  // Camera ready
   $('video').srcObject = stream;
-  $('scanStatus').innerHTML='✅ Camera ready<br>🔦 Tap TORCH or SCREEN LIGHT below';
+  $('scanStatus').innerHTML='✅ Camera ready<br>🔦 Tap FLASHLIGHT button to turn light ON';
   scanLoopActive = true;
-  torchTrack = null; torchOn = false;
+  torchOn = false;
   continuousScan();
   
  }catch(err){
-  console.error('Camera error:', err);
-  $('scanStatus').innerHTML='❌ Camera blocked<br>Go to Settings → Browser → Allow Camera';
+  $('scanStatus').innerHTML='❌ Camera blocked — Allow camera in Settings';
   showNotify('❌ Camera permission denied','unknown');
  }
 };
 
-// ─── STOP SCAN — Clean exit ───
+// ─── STOP SCAN ───
 $('closeScan').onclick=async()=>{
- // Turn torch off before stopping
- if(torchTrack && torchOn){
-  try{ await torchTrack.applyConstraints({advanced:[{torch:false}]}) }catch(e){}
+ if(torchOn && stream){
+  const track = stream.getVideoTracks()[0];
+  if(track?.applyConstraints) try{ await track.applyConstraints({advanced:[{torch:false}]}) }catch(e){}
  }
- // Turn screen light off
- document.body.classList.remove('screen-max');
- if(wakeLock){ try{ await wakeLock.release() }catch(e){} wakeLock=null }
- 
  scanLoopActive = false;
  if(stream) stream.getTracks().forEach(t => t.stop());
- stream = null; torchTrack = null; torchOn = false; screenLightOn = false;
+ stream = null; torchOn = false;
  $('video').srcObject = null;
  $('scanner').style.display = 'none';
- // Reset buttons
- $('torchBtn').classList.remove('torch-active','torch-idle'); $('torchBtn').classList.add('torch-idle'); $('torchBtn').textContent='🔦 TORCH';
- $('screenBtn').classList.remove('screen-active','torch-idle'); $('screenBtn').classList.add('torch-idle'); $('screenBtn').textContent='💡 SCREEN LIGHT';
+ $('torchBtn').classList.remove('torch-active'); $('torchBtn').classList.add('torch-idle');
+ $('torchBtn').textContent='🔦 FLASHLIGHT';
 };
 
-// Hook up buttons
 $('torchBtn').onclick = toggleTorch;
-$('screenBtn').onclick = toggleScreenLight;
 
 // ─── INIT ───
 window.onload=()=>{if(!loadData()){regBox.value=PRESET_LIST;items=buildList(PRESET_LIST)}render()};
