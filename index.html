@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Reg Scanner — With 4-Digit Entry</title>
+<title>Reg Scanner — Export Added</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{--bg:#000;--card:#111;--line:#333;--text:#fff;--muted:#aaa;--cyan:#0ff;--green:#0f8;--amber:#fa0;--scan:#f29;--found-top:#0cf;--red:#f44;--purple:#a5f}
@@ -14,11 +14,12 @@ h1{font-size:1.1rem;color:var(--cyan);margin-bottom:4px}
 p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
 .panel{background:#1a1a1a;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
 textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:#fff;border-radius:10px;padding:11px;outline:none;font-size:.86rem;resize:none}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn{border:0;border-radius:10px;padding:12px 8px;color:white;font-weight:700;cursor:pointer;flex:1;min-width:100px;font-size:.85rem}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;border-radius:10px;padding:12px 6px;color:white;font-weight:700;cursor:pointer;flex:1;min-width:85px;font-size:.8rem;transition:all .2s}
 .scanbtn{background:linear-gradient(145deg,#f3a,#906)}
 .process{background:linear-gradient(145deg,#0ce,#079)}
 .clear{background:linear-gradient(145deg,#555,#333)}
+.exportbtn{background:linear-gradient(145deg,#4a6,#284)}
 .torch-idle{background:#2a2a2a;border:1px solid #444}
 .torch-active{background:linear-gradient(145deg,#ffd700,#ffaa00);color:#000;font-weight:900;box-shadow:0 0 15px #ffd70066}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
@@ -46,6 +47,14 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 .notify.found{background:#163a2e;border:1px solid var(--green);color:#9efc9e}
 .notify.unknown{background:#3a1e1e;border:1px solid var(--red);color:#fbb}
 .notify.duplicate{background:#2f1f44;border:1px solid var(--purple);color:#dcf}
+/* Export selection modal */
+.export-modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:10000;opacity:0;visibility:hidden;transition:.2s}
+.export-modal.show{opacity:1;visibility:visible}
+.export-box{background:#1a1a1a;border:1px solid #444;border-radius:14px;padding:20px;margin:16px;max-width:340px;width:100%}
+.export-box h3{margin:0 0 14px 0;color:var(--cyan);font-size:1rem}
+.export-option{display:block;width:100%;text-align:left;background:#252525;border:1px solid #444;color:#fff;padding:12px 14px;border-radius:10px;margin-bottom:8px;cursor:pointer;font-size:.9rem;transition:.2s}
+.export-option:hover{background:#333;border-color:var(--cyan)}
+.export-close{margin-top:10px;background:#444;text-align:center}
 #scanner{position:fixed;bottom:0;left:0;right:0;background:#000e;z-index:998;border-top:1px solid #333;padding:12px 15px}
 .scanbox{max-width:540px;margin:0 auto}
 .video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:8px 0}
@@ -62,8 +71,8 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 <body>
 
 <div id="notify" class="notify"></div>
-<h1>🚐 Reg Scanner — With 4-Digit Ref</h1>
-<p>✅ Type your 4-digit number in the box next to each reg • Auto-saved</p>
+<h1>🚐 Reg Scanner — Export</h1>
+<p>✅ Export list • 4-digit ref • Flashlight control</p>
 
 <div class="panel">
  <textarea id="regBox"></textarea>
@@ -71,6 +80,7 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
   <button class="btn process" id="processBtn">⚡ REBUILD</button>
   <button class="btn scanbtn" id="openScanBtn">📷 START SCAN</button>
   <button class="btn clear" id="clearBtn">🗑️ RESET</button>
+  <button class="btn exportbtn" id="exportBtn">📤 EXPORT</button>
  </div>
 </div>
 
@@ -102,6 +112,18 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
   </div>
  </div>
 </div>
+
+<!-- Export Selection Popup -->
+<div id="exportModal" class="export-modal">
+ <div class="export-box">
+  <h3>📤 EXPORT OPTION</h3>
+  <button class="export-option" data-type="all">📋 1. Complete JOB List</button>
+  <button class="export-option" data-type="completed">✅ 2. Completed JOBS</button>
+  <button class="export-option" data-type="remaining">⏳ 3. Remaining JOBS</button>
+  <button class="export-option export-close" id="exportClose">✕ CANCEL</button>
+ </div>
+</div>
+
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
@@ -191,39 +213,81 @@ async function toggleFlash(){
  }
 }
 
-// Data structure with custom number field
+// Data
 function buildList(t){
  return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({
   reg:r,
   done:false,
   found:false,
-  customNum:'' // stores your 4-digit number
+  customNum:''
  }));
 }
 function saveData(){
- localStorage.setItem(SAVE_KEY,JSON.stringify({
-  listText:$('regBox').value,
-  items:items
- }));
+ localStorage.setItem(SAVE_KEY,JSON.stringify({listText:$('regBox').value,items}));
 }
 function loadData(){
- try{
-  const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
-  if(d?.items?.length){
-   items=d.items;
-   $('regBox').value=d.listText;
-   return true;
-  }
- }catch(e){}
+ try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d?.items?.length){items=d.items;$('regBox').value=d.listText;return true}}catch(e){}
  return false;
 }
-
-// Update custom number
 function updateCustomNum(index,value){
- items[index].customNum=value.replace(/[^0-9]/g,'').slice(0,4); // only numbers, max 4 digits
+ items[index].customNum=value.replace(/[^0-9]/g,'').slice(0,4);
  saveData();
 }
 
+// ─── EXPORT FUNCTIONS ───
+function getTodayDate(){
+ const d=new Date();
+ const dd=String(d.getDate()).padStart(2,'0');
+ const mm=String(d.getMonth()+1).padStart(2,'0');
+ const yyyy=d.getFullYear();
+ return `${dd}${mm}${yyyy}`;
+}
+
+function generateExportText(filterType){
+ let filteredItems=[];
+ let headerLabel='';
+ 
+ if(filterType==='all'){
+  filteredItems=[...items];
+  headerLabel='COMPLETE JOB LIST';
+ }else if(filterType==='completed'){
+  filteredItems=items.filter(i=>i.done);
+  headerLabel='COMPLETED JOBS';
+ }else if(filterType==='remaining'){
+  filteredItems=items.filter(i=>!i.done);
+  headerLabel='REMAINING JOBS';
+ }
+ 
+ let text=`${headerLabel}\nDate: ${new Date().toLocaleDateString()}\nTotal: ${filteredItems.length}\n${'━'.repeat(30)}\n\n`;
+ 
+ filteredItems.forEach((item,idx)=>{
+  const status=item.done ? '[DONE]' : (item.found ? '[FOUND]' : '[PENDING]');
+  const ref=item.customNum || '----';
+  text+=`${String(idx+1).padStart(3,'0')}  ${item.reg}  Ref: ${ref}  ${status}\n`;
+ });
+ 
+ return text;
+}
+
+function getFileName(filterType){
+ const date=getTodayDate();
+ if(filterType==='all') return `HPC-JOBS-LIST-(${date}).txt`;
+ if(filterType==='completed') return `HPC-COMPLETED-JOBS-(${date}).txt`;
+ if(filterType==='remaining') return `HPC-PENDING-JOBS-(${date}).txt`;
+}
+
+function downloadFile(filterType){
+ const text=generateExportText(filterType);
+ const name=getFileName(filterType);
+ const blob=new Blob([text],{type:'text/plain'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+ showNotify('✅ Exported: '+name,'found');
+ $('exportModal').classList.remove('show');
+}
+
+// Render
 function render(){
  const f=items.filter(i=>i.found&&!i.done);
  const p=items.filter(i=>!i.found&&!i.done);
@@ -231,48 +295,39 @@ function render(){
  
  $('foundSection').style.display=f.length?'block':'none';
  
- // Render FOUND items
- $('foundList').innerHTML=f.map((item,idx)=>{
-   const realIndex=items.indexOf(item);
-   return `
-   <div class="item found-top">
-     <div class="tick" onclick="markDone(${realIndex})"></div>
+ $('foundList').innerHTML=f.map(item=>{
+   const idx=items.indexOf(item);
+   return `<div class="item found-top">
+     <div class="tick" onclick="markDone(${idx})"></div>
      <span class="reg">${item.reg}</span>
      <span class="section-tag sec-found">FOUND</span>
      <input type="text" class="custom-num" placeholder="0000" 
-       value="${item.customNum}" 
-       maxlength="4" inputmode="numeric"
-       oninput="updateCustomNum(${realIndex}, this.value)">
+       value="${item.customNum}" maxlength="4" inputmode="numeric"
+       oninput="updateCustomNum(${idx}, this.value)">
    </div>`;
  }).join('');
  
- // Render PENDING items
- $('pendingList').innerHTML=p.map((item,idx)=>{
-   const realIndex=items.indexOf(item);
-   return `
-   <div class="item">
-     <div class="tick" onclick="markDone(${realIndex})"></div>
+ $('pendingList').innerHTML=p.map(item=>{
+   const idx=items.indexOf(item);
+   return `<div class="item">
+     <div class="tick" onclick="markDone(${idx})"></div>
      <span class="reg">${item.reg}</span>
      <span class="section-tag sec-pending">PENDING</span>
      <input type="text" class="custom-num" placeholder="0000" 
-       value="${item.customNum}" 
-       maxlength="4" inputmode="numeric"
-       oninput="updateCustomNum(${realIndex}, this.value)">
+       value="${item.customNum}" maxlength="4" inputmode="numeric"
+       oninput="updateCustomNum(${idx}, this.value)">
    </div>`;
  }).join('');
  
- // Render DONE items
- $('doneList').innerHTML=d.map((item,idx)=>{
-   const realIndex=items.indexOf(item);
-   return `
-   <div class="item done">
-     <div class="tick checked" onclick="unmark(${realIndex})"></div>
+ $('doneList').innerHTML=d.map(item=>{
+   const idx=items.indexOf(item);
+   return `<div class="item done">
+     <div class="tick checked" onclick="unmark(${idx})"></div>
      <span class="reg">${item.reg}</span>
      <span class="section-tag sec-done">DONE</span>
      <input type="text" class="custom-num" placeholder="0000" 
-       value="${item.customNum}" 
-       maxlength="4" inputmode="numeric"
-       oninput="updateCustomNum(${realIndex}, this.value)">
+       value="${item.customNum}" maxlength="4" inputmode="numeric"
+       oninput="updateCustomNum(${idx}, this.value)">
    </div>`;
  }).join('');
  
@@ -297,7 +352,6 @@ $('openScanBtn').onclick=async()=>{
   torchOn=false;scanLoop();
  }catch(e){$('scanStatus').textContent='❌ Camera blocked — Allow in Settings'}
 };
-
 $('closeScan').onclick=async()=>{
  if(torchOn)await setFlashlight(false);
  if(stream)stream.getTracks().forEach(t=>t.stop());
@@ -315,29 +369,20 @@ async function scanLoop(){
   try{
    const r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:6});
    const found=clean(r.data.text);
-   
-   if(!looksLikePlate(found)){
-     setTimeout(scanLoop,800);
-     return;
-   }
-   
+   if(!looksLikePlate(found)){setTimeout(scanLoop,800);return}
    const match=items.find(i=>found.includes(i.reg));
-   
    if(match){
     if(!match.found && !match.done && Date.now()-lastHit>2500){
-      lastHit=Date.now();match.found=true;
-      soundFound();showNotify('✅ FOUND: '+match.reg,'found');
+      lastHit=Date.now();match.found=true;soundFound();showNotify('✅ FOUND: '+match.reg,'found');
       $('scanStatus').textContent='✅ FOUND: '+match.reg+' — Enter your 4-digit number';
       saveData();render();
     }else if((match.found||match.done)&&Date.now()-lastHit>2500){
-      lastHit=Date.now();
-      soundDuplicate();showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
+      lastHit=Date.now();soundDuplicate();showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
       $('scanStatus').textContent='🔄 Already processed';
     }
    }else{
     if(Date.now()-lastHit>2500){
-      lastHit=Date.now();
-      soundUnknown();showNotify('❌ UNKNOWN REG: '+found,'unknown');
+      lastHit=Date.now();soundUnknown();showNotify('❌ UNKNOWN REG: '+found,'unknown');
       $('scanStatus').textContent='❌ Not in list: '+found;
     }
    }
@@ -345,6 +390,13 @@ async function scanLoop(){
  }
  setTimeout(scanLoop,800);
 }
+
+// Export controls
+$('exportBtn').onclick=()=>{$('exportModal').classList.add('show')};
+$('exportClose').onclick=()=>{$('exportModal').classList.remove('show')};
+document.querySelectorAll('.export-option[data-type]').forEach(btn=>{
+ btn.onclick=()=>downloadFile(btn.dataset.type);
+});
 
 window.onload=()=>{if(!loadData()){$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST)}render()};
 $('processBtn').onclick=()=>{items=buildList($('regBox').value);saveData();render()};
