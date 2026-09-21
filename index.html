@@ -4,25 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Reg Scanner — Flashlight Fixed</title>
+<title>Reg Scanner — No False Alerts</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
-:root{
- --bg:#000;--card:#111;--line:#333;
- --text:#fff;--muted:#aaa;--cyan:#0ff;
- --green:#0f8;--amber:#fa0;--scan:#f29;
- --found-top:#0cf;--red:#f44;--purple:#a5f;
-}
+:root{--bg:#000;--card:#111;--line:#333;--text:#fff;--muted:#aaa;--cyan:#0ff;--green:#0f8;--amber:#fa0;--scan:#f29;--found-top:#0cf;--red:#f44}
 *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
 html,body{background:#000;color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto;padding-bottom:180px}
 h1{font-size:1.1rem;color:var(--cyan);margin-bottom:4px}
 p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
 .panel{background:#1a1a1a;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-.panel-title{font-size:.86rem;color:#ddd;margin-bottom:9px;font-weight:700}
 textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:#fff;border-radius:10px;padding:11px;outline:none;font-size:.86rem;resize:none}
-textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn{border:0;border-radius:10px;padding:12px 8px;color:white;font-weight:700;cursor:pointer;flex:1;min-width:100px;font-size:.85rem;transition:all .2s}
+.btn{border:0;border-radius:10px;padding:12px 8px;color:white;font-weight:700;cursor:pointer;flex:1;min-width:100px;font-size:.85rem}
 .scanbtn{background:linear-gradient(145deg,#f3a,#906)}
 .process{background:linear-gradient(145deg,#0ce,#079)}
 .clear{background:linear-gradient(145deg,#555,#333)}
@@ -36,20 +29,17 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 .pending{color:var(--amber)}.done{color:var(--green)}
 .found-section{border-bottom:1px dashed #246;margin-bottom:10px;padding-bottom:6px}
 .found-title{color:var(--found-top);font-size:.8rem;font-weight:bold;margin:4px 0}
-.item{display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #333;border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom:7px;transition:.3s ease}
+.item{display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #333;border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom:7px}
 .item.found-top{border-left-color:var(--found-top);background:#0f2533;box-shadow:0 0 14px 3px #0cf3}
 .item.done{border-left-color:var(--green);opacity:.7}
-.item.just-found{animation:flash .6s ease}
-@keyframes flash{0%{transform:scale(1.03);box-shadow:0 0 25px 5px #f29}100%{transform:scale(1)}}
 .reg{font-size:1rem;font-weight:900;letter-spacing:.7px}
-.tick{width:22px;height:22px;border:2px solid #555;border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
+.tick{width:22px;height:22px;border:2px solid #555;border-radius:6px;cursor:pointer;display:grid;place-items:center}
 .tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
 .notify{position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:10px;font-weight:bold;z-index:9999;opacity:0;transition:opacity .2s ease;pointer-events:none}
 .notify.show{opacity:1}
 .notify.found{background:#163a2e;border:1px solid var(--green);color:#9efc9e}
 .notify.unknown{background:#3a1e1e;border:1px solid var(--red);color:#fbb}
-.notify.duplicate{background:#2f1f44;border:1px solid var(--purple);color:#dcf}
-.notify.info{background:#1e2b3a;border:1px solid #0af;color:#adf}
+.notify.duplicate{background:#2f1f44;border:1px solid #a5f;color:#dcf}
 #scanner{position:fixed;bottom:0;left:0;right:0;background:#000e;z-index:998;border-top:1px solid #333;padding:12px 15px}
 .scanbox{max-width:540px;margin:0 auto}
 .video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:8px 0}
@@ -66,12 +56,10 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 <body>
 
 <div id="notify" class="notify"></div>
-
-<h1>🚐 Reg Scanner — 🔦 Flashlight Direct</h1>
-<p>Only camera flashlight — no screen light</p>
+<h1>🚐 Reg Scanner — No False Alerts</h1>
+<p>✅ Only alerts when confirmed plate found</p>
 
 <div class="panel">
- <div class="panel-title">📋 REGISTRATION LIST</div>
  <textarea id="regBox"></textarea>
  <div class="row">
   <button class="btn process" id="processBtn">⚡ REBUILD</button>
@@ -91,18 +79,12 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
  <div class="found-title">🔵 FOUND — READY</div>
  <div id="foundList"></div>
 </div>
-
-<div class="list-title pending">⏳ PENDING</div>
-<div id="pendingList"></div>
-<div class="list-title done">✅ COMPLETED</div>
-<div id="doneList"></div>
+<div class="list-title pending">⏳ PENDING</div><div id="pendingList"></div>
+<div class="list-title done">✅ COMPLETED</div><div id="doneList"></div>
 
 <div id="scanner" style="display:none">
  <div class="scanbox">
-  <div class="video-wrap">
-   <video id="video" autoplay muted playsinline></video>
-   <div class="frame"><div class="scanline"></div></div>
-  </div>
+  <div class="video-wrap"><video id="video" autoplay muted playsinline></video><div class="frame"><div class="scanline"></div></div></div>
   <div class="scan-status" id="scanStatus">🔴 Starting…</div>
   <div class="scanner-controls">
    <button class="btn torch-idle" id="torchBtn">🔦 FLASHLIGHT</button>
@@ -114,12 +96,10 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
 
 <script>
 const $=id=>document.getElementById(id);
-const SAVE_KEY = 'regScanner_savedData';
-const regBox=$('regBox'), notify=$('notify');
-let items=[], stream=null, scanLoopActive=false, lastHit=0;
-let torchOn=false;
+const SAVE_KEY='regScanner_savedData';
+let items=[],stream=null,torchOn=false,lastHit=0;
 
-const PRESET_LIST = `NX22ULU
+const PRESET_LIST=`NX22ULU
 NX22ULV
 NX22UMD
 NX22UML
@@ -168,165 +148,121 @@ NX72VLT
 NX72VLO`;
 
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function looksLikePlate(s){
+ // UK plate format check — min 6 chars, mix letters+numbers
+ return s.length>=6 && s.length<=8 && /[A-Z]/.test(s) && /[0-9]/.test(s);
+}
+function showNotify(msg,type='info'){$('notify').className='notify show '+type;$('notify').textContent=msg;setTimeout(()=>$('notify').classList.remove('show'),1500)}
 
+// Sounds
 function soundFound(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
 function soundUnknown(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(220,c.currentTime);o.frequency.exponentialRampToValueAtTime(110,c.currentTime+.2);g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
 function soundDuplicate(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(523,c.currentTime);o.frequency.setValueAtTime(659,c.currentTime+.1);g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
 
-function showNotify(msg, type='info'){notify.className='notify show '+type;notify.textContent=msg;setTimeout(()=>notify.classList.remove('show'),1500)}
-
-// ─── DIRECT FLASHLIGHT CONTROL ───
-async function setTorchState(on){
- if(!stream) return false;
- const track = stream.getVideoTracks().find(t => t.readyState === 'live');
- if(!track) return false;
- if(!track.applyConstraints) return false;
-
- try{
-  // Method 1: Direct torch
-  await track.applyConstraints({advanced: [{ torch: on }]});
-  return true;
- }catch(e1){
-  try{
-   // Method 2: fillLightMode
-   await track.applyConstraints({advanced: [{ fillLightMode: on ? 'flash' : 'off' }]});
-   return true;
-  }catch(e2){
-   try{
-    // Method 3: All advanced keys
-    await track.applyConstraints({advanced: [{ torch: on, fillLightMode: on ? 'flash' : 'off' }]});
-    return true;
-   }catch(e3){
-    return false;
-   }
-  }
- }
+// Flashlight
+async function setFlashlight(on){
+ if(!stream)return false;
+ const track=stream.getVideoTracks().find(t=>t.readyState==='live');
+ if(!track)return false;
+ const methods=[{torch:on},{fillLightMode:on?'flash':'off'},{torch:on,fillLightMode:on?'flash':'off'}];
+ for(const m of methods){try{await track.applyConstraints({advanced:[m]});return true}catch(e){}}
+ return false;
 }
-
-async function toggleTorch(){
- if(!stream) return showNotify('❌ Start scanner first','unknown');
- 
- torchOn = !torchOn;
- const ok = await setTorchState(torchOn);
- const btn = $('torchBtn');
-
+async function toggleFlash(){
+ if(!stream)return showNotify('❌ Start scanner first','unknown');
+ torchOn=!torchOn;
+ const ok=await setFlashlight(torchOn);
+ const b=$('torchBtn');
  if(ok){
-  if(torchOn){
-   btn.classList.add('torch-active'); btn.classList.remove('torch-idle');
-   btn.textContent='🔦 ON';
-   showNotify('✅ FLASHLIGHT ON','found');
-  }else{
-   btn.classList.remove('torch-active'); btn.classList.add('torch-idle');
-   btn.textContent='🔦 FLASHLIGHT';
-  }
+  if(torchOn){b.className='btn torch-active';b.textContent='🔦 ON';showNotify('✅ FLASHLIGHT ON','found')}
+  else{b.className='btn torch-idle';b.textContent='🔦 FLASHLIGHT'}
  }else{
-  torchOn = !torchOn; // revert
-  showNotify('❌ FLASHLIGHT NOT SUPPORTED ON THIS DEVICE/BROWSER','unknown');
-  $('scanStatus').innerHTML='❌ Your browser/phone does not allow flashlight control.<br>Use Chrome on Android for full control.';
+  torchOn=!torchOn;
+  showNotify('⚠️ Flashlight not supported — use phone torch manually','unknown');
  }
 }
 
-// ─── DATA & SAVE ───
-function buildList(text){return text.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(reg=>({reg,done:false,found:false}))}
-function saveData(){localStorage.setItem(SAVE_KEY,JSON.stringify({listText:regBox.value,items:items}))}
-function loadData(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d?.items?.length){regBox.value=d.listText;items=d.items;return true;}}catch(e){}return false}
-function resetAll(){if(confirm('⚠️ Reset ALL progress?')){localStorage.removeItem(SAVE_KEY);regBox.value=PRESET_LIST;items=buildList(PRESET_LIST);render()}}
-
+// Data
+function buildList(t){return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({reg:r,done:false,found:false}))}
+function saveData(){localStorage.setItem(SAVE_KEY,JSON.stringify({listText:$('regBox').value,items}))}
+function loadData(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d?.items?.length){items=d.items;$('regBox').value=d.listText;return true}}catch(e){}return false}
 function render(){
- const foundItems=items.filter(i=>i.found && !i.done), pendingItems=items.filter(i=>!i.found && !i.done), doneItems=items.filter(i=>i.done);
- $('foundSection').style.display=foundItems.length?'block':'none';
- $('foundList').innerHTML=''; $('pendingList').innerHTML=''; $('doneList').innerHTML='';
- foundItems.forEach(item=>{const el=document.createElement('div');el.className='item found-top'+(item.justFound?' just-found':'');el.innerHTML=`<div class="tick" onclick="markDone(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;$('foundList').appendChild(el);if(item.justFound)setTimeout(()=>{item.justFound=false;saveData();render()},600)});
- pendingItems.forEach(item=>{const el=document.createElement('div');el.className='item';el.innerHTML=`<div class="tick" onclick="markDone(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;$('pendingList').appendChild(el)});
- doneItems.forEach(item=>{const el=document.createElement('div');el.className='item done';el.innerHTML=`<div class="tick checked" onclick="unmark(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;$('doneList').appendChild(el)});
- $('foundCount').textContent=foundItems.length;$('pendingCount').textContent=pendingItems.length;$('doneCount').textContent=doneItems.length;$('totalCount').textContent=items.length;
+ const f=items.filter(i=>i.found&&!i.done),p=items.filter(i=>!i.found&&!i.done),d=items.filter(i=>i.done);
+ $('foundSection').style.display=f.length?'block':'none';
+ $('foundList').innerHTML=f.map(i=>`<div class="item found-top"><div class="tick" onclick="markDone(${items.indexOf(i)})"></div><div class="reg">${i.reg}</div></div>`).join('');
+ $('pendingList').innerHTML=p.map(i=>`<div class="item"><div class="tick" onclick="markDone(${items.indexOf(i)})"></div><div class="reg">${i.reg}</div></div>`).join('');
+ $('doneList').innerHTML=d.map(i=>`<div class="item done"><div class="tick checked" onclick="unmark(${items.indexOf(i)})"></div><div class="reg">${i.reg}</div></div>`).join('');
+ $('foundCount').textContent=f.length;$('pendingCount').textContent=p.length;$('doneCount').textContent=d.length;$('totalCount').textContent=items.length;
 }
-function markDone(idx){items[idx].done=true;items[idx].found=false;saveData();render()}
-function unmark(idx){items[idx].done=false;saveData();render()}
+function markDone(i){items[i].done=true;items[i].found=false;saveData();render()}
+function unmark(i){items[i].done=false;saveData();render()}
 
-// ─── START SCAN ───
+// Scanner
 $('openScanBtn').onclick=async()=>{
  if(!items.length)return alert('Build list first');
- 
  $('scanner').style.display='block';
- $('scanStatus').textContent='🔐 Requesting camera… Allow when prompted';
- 
+ $('scanStatus').textContent='🔐 Allowing camera…';
  try{
-  stream = await navigator.mediaDevices.getUserMedia({
-   video: {
-    facingMode: 'environment',
-    width: { ideal: 1280 },
-    height: { ideal: 720 }
-   },
-   audio: false
-  });
-  
-  $('video').srcObject = stream;
-  $('scanStatus').innerHTML='✅ Camera ready<br>🔦 Tap FLASHLIGHT button to turn light ON';
-  scanLoopActive = true;
-  torchOn = false;
-  continuousScan();
-  
- }catch(err){
-  $('scanStatus').innerHTML='❌ Camera blocked — Allow camera in Settings';
-  showNotify('❌ Camera permission denied','unknown');
- }
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false});
+  $('video').srcObject=stream;
+  $('scanStatus').innerHTML='✅ Ready — Tap FLASHLIGHT or use phone torch';
+  torchOn=false;scanLoop();
+ }catch(e){$('scanStatus').textContent='❌ Camera blocked — Allow in Settings'}
 };
-
-// ─── STOP SCAN ───
 $('closeScan').onclick=async()=>{
- if(torchOn && stream){
-  const track = stream.getVideoTracks()[0];
-  if(track?.applyConstraints) try{ await track.applyConstraints({advanced:[{torch:false}]}) }catch(e){}
- }
- scanLoopActive = false;
- if(stream) stream.getTracks().forEach(t => t.stop());
- stream = null; torchOn = false;
- $('video').srcObject = null;
- $('scanner').style.display = 'none';
- $('torchBtn').classList.remove('torch-active'); $('torchBtn').classList.add('torch-idle');
- $('torchBtn').textContent='🔦 FLASHLIGHT';
+ if(torchOn)await setFlashlight(false);
+ if(stream)stream.getTracks().forEach(t=>t.stop());
+ stream=null;torchOn=false;
+ $('scanner').style.display='none';
+ $('torchBtn').className='btn torch-idle';$('torchBtn').textContent='🔦 FLASHLIGHT';
 };
 
-$('torchBtn').onclick = toggleTorch;
-
-// ─── INIT ───
-window.onload=()=>{if(!loadData()){regBox.value=PRESET_LIST;items=buildList(PRESET_LIST)}render()};
-$('processBtn').onclick=()=>{items=buildList(regBox.value);if(!items.length)return alert('No regs found');saveData();render()};
-$('clearBtn').onclick=resetAll;
-
-// ─── SCAN LOOP ───
-async function continuousScan(){
- if(!scanLoopActive)return;
+async function scanLoop(){
+ if(!stream)return;
  const v=$('video'),c=$('canvas');
  if(v.videoWidth){
-  const w=v.videoWidth,h=v.videoHeight;
-  const sx=Math.round(w*.07),sy=Math.round(h*.39),sw=Math.round(w*.86),sh=Math.round(h*.22);
-  c.width=sw;c.height=sh;
-  c.getContext('2d').drawImage(v,sx,sy,sw,sh,0,0,sw,sh);
+  c.width=Math.round(v.videoWidth*.86);c.height=Math.round(v.videoHeight*.22);
+  c.getContext('2d').drawImage(v,Math.round(v.videoWidth*.07),Math.round(v.videoHeight*.39),c.width,c.height,0,0,c.width,c.height);
   try{
    const r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:6});
    const found=clean(r.data.text);
+   
+   // ✅ ONLY process if it actually looks like a plate
+   if(!looksLikePlate(found)){
+     setTimeout(scanLoop,800);
+     return; // SILENT — no sound, no notification
+   }
+   
    const match=items.find(i=>found.includes(i.reg));
+   
    if(match){
     if(!match.found && !match.done && Date.now()-lastHit>2500){
-      lastHit=Date.now();match.found=true;match.justFound=true;
+      lastHit=Date.now();match.found=true;
       soundFound();showNotify('✅ FOUND: '+match.reg,'found');
       $('scanStatus').textContent='✅ FOUND: '+match.reg;
       saveData();render();
-      setTimeout(()=>$('foundSection').scrollIntoView({behavior:'smooth',block:'start'}),100);
     }else if((match.found||match.done)&&Date.now()-lastHit>2500){
-      lastHit=Date.now();soundDuplicate();showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
+      lastHit=Date.now();
+      soundDuplicate();showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
       $('scanStatus').textContent='🔄 Already processed';
     }
-   }else if(found.length>=5 && Date.now()-lastHit>2500){
-    lastHit=Date.now();soundUnknown();showNotify('❌ UNKNOWN REG','unknown');
-    $('scanStatus').textContent='❌ Not in list';
+   }else{
+    // ✅ UNKNOWN — ONLY triggers if valid plate format AND not in list
+    if(Date.now()-lastHit>2500){
+      lastHit=Date.now();
+      soundUnknown();showNotify('❌ UNKNOWN REG: '+found,'unknown');
+      $('scanStatus').textContent='❌ Not in list: '+found;
+    }
    }
   }catch(e){}
  }
- setTimeout(continuousScan, v.videoWidth?800:300);
+ setTimeout(scanLoop,800);
 }
+
+window.onload=()=>{if(!loadData()){$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST)}render()};
+$('processBtn').onclick=()=>{items=buildList($('regBox').value);saveData();render()};
+$('clearBtn').onclick=()=>{if(confirm('Reset all?')){localStorage.removeItem(SAVE_KEY);$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST);render()}};
+$('torchBtn').onclick=toggleFlash;
 </script>
 </body>
 </html>
