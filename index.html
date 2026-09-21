@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
-<title>Enfield Dotcom — Fast Reg Matcher ✅</title>
+<title>Enfield Dotcom — Reg Matcher ✅</title>
 <style>
 :root{
  --bg:#07090d;--card:#11151c;--line:#29313d;--text:#f5f7fa;--muted:#8f9aaa;
@@ -50,14 +50,15 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
 .scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:16px}
 .video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:4/3;margin-bottom:12px}
 #video{width:100%;height:100%;object-fit:cover;display:block}
-.overlay{position:absolute;left:8%;right:8%;top:40%;height:20%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006}
-.scan-status{text-align:center;padding:10px 4px;min-height:50px}
+.overlay{position:absolute;left:5%;right:5%;top:38%;height:24%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006}
+.scan-status{text-align:center;padding:10px 4px;min-height:60px;font-size:.8rem;line-height:1.4}
 .scan-status.success{color:var(--green)}.scan-status.error{color:var(--red)}.scan-status.loading{color:var(--amber)}
 .scanner-controls{display:flex;gap:8px;margin-top:10px}.scanner-controls button{flex:1}
 .close{background:linear-gradient(145deg,#555,#292e34)}
 .manual-wrap{margin-top:14px;padding-top:14px;border-top:1px solid #2a3442}
 .manual-input{width:100%;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:8px;padding:12px;font-size:1.2rem;font-weight:700;letter-spacing:1px;text-align:center;margin:6px 0}
 .manual-input:focus{border-color:var(--green);box-shadow:0 0 0 2px #16e38a33}
+.read-preview{background:#0a0f14;border-radius:8px;padding:8px;margin:8px 0;font-family:monospace;font-size:.9rem;color:#ccc;word-break:break-all}
 </style>
 </head>
 <body>
@@ -65,7 +66,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
 <header class="header">
  <button id="resetBtn" class="top-reset" type="button">↻ RESET</button>
  <h1>🚐 Enfield Dotcom — Reg Matcher</h1>
- <p>✅ No downloads — Scan or Type → Instant Match</p>
+ <p>✅ Type = Instant • Camera = Helper</p>
 </header>
 
 <section class="panel">
@@ -76,7 +77,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
   <button class="btn clear" id="clearBtn">Clear</button>
   <button class="btn scanbtn" id="openScannerBtn">📷 CAMERA SCAN</button>
  </div>
- <div class="small">💡 Camera slow? Type below — always instant</div>
+ <div class="small">💡 Fastest: Type it directly — always instant ✅</div>
 </section>
 
 <div class="stats">
@@ -104,13 +105,14 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
    <div class="overlay"></div>
   </div>
   <div class="scan-status" id="scanStatus">Camera starting…</div>
+  <div id="readPreview" class="read-preview hidden"></div>
   <div class="scanner-controls">
    <button class="btn close" id="closeScanner">✕ CLOSE</button>
    <button class="btn scanbtn" id="scanNow">📸 TAKE PHOTO</button>
   </div>
   
   <div class="manual-wrap">
-   <div class="panel-title" style="margin-bottom:4px">⚡ FASTEST — JUST TYPE IT</div>
+   <div class="panel-title" style="margin-bottom:4px">⚡ ALWAYS WORKS — JUST TYPE IT</div>
    <input type="text" id="manualReg" class="manual-input" placeholder="e.g. NX22ULU" maxlength="8">
    <button class="btn manual" id="manualMatchBtn" style="width:100%">✅ FIND & MATCH — INSTANT</button>
   </div>
@@ -119,7 +121,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom
 <canvas id="ocrCanvas" style="display:none"></canvas>
 
 <script>
-const KEY='enfield-simple-v1';
+const KEY='enfield-simple-v2';
 let items=[];
 let stream=null;
 const $=id=>document.getElementById(id);
@@ -177,13 +179,13 @@ function filter(){
 // ─── MATCH LOGIC ───
 function matchAndHighlight(regInput){
  const reg=norm(regInput);
- if(!validReg(reg)){alert(`⚠️ Not a valid UK format: ${reg}`);return;}
+ if(!validReg(reg)){alert(`⚠️ Not valid format: ${reg}`);return;}
  
  const match=items.find(x=>norm(x.reg)===reg);
- if(!match){alert(`❌ ${reg} — NOT FOUND in list`);return;}
+ if(!match){alert(`❌ ${reg} — NOT FOUND`);return;}
  
  beep();
- alert(`✅ MATCH FOUND: ${match.reg}`);
+ alert(`✅ MATCH: ${match.reg}`);
  stopCamera();
  
  document.querySelectorAll('.scan-hit').forEach(x=>x.classList.remove('scan-hit'));
@@ -198,36 +200,85 @@ function matchAndHighlight(regInput){
 // ─── MANUAL INPUT — ALWAYS WORKS ───
 $('manualMatchBtn').onclick=()=>{
  const val=$('manualReg').value.trim();
- if(!val){alert('Type a registration first');return;}
+ if(!val){alert('Type registration first');return;}
  matchAndHighlight(val);
  $('manualReg').value='';
 };
 $('manualReg').onkeydown=e=>e.key==='Enter'&&$('manualMatchBtn').click();
 
-// ─── CAMERA + SIMPLE OCR (NO TESSERACT!) ───
+// ─── CAMERA SCAN ───
 function stopCamera(){
  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
  $('video').srcObject=null;
  $('scanner').classList.remove('open');
+ $('readPreview').classList.add('hidden');
 }
 
 $('openScannerBtn').onclick=async()=>{
  $('scanner').classList.add('open');
+ $('readPreview').classList.add('hidden');
  try{
   stream=await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:'environment',width:{ideal:640},height:{ideal:480}},
+    video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},
     audio:false
   });
   $('video').srcObject=stream;
-  $('scanStatus').textContent='✅ Camera ready — hold still & tap TAKE PHOTO';
+  $('scanStatus').textContent='✅ Camera ready — hold plate still & bright → TAP PHOTO';
+  $('scanStatus').className='scan-status success';
  }catch(e){
-  $('scanStatus').textContent='❌ Camera blocked — use TYPE IT below';
-  $('scanStatus').classList.add('error');
+  $('scanStatus').textContent='❌ Camera blocked — TYPE IT below';
+  $('scanStatus').className='scan-status error';
  }
 };
 $('closeScanner').onclick=stopCamera;
 
-// ✅ NEW METHOD: Preprocess image + regex pattern matching
+// Enhanced image preprocessing
+function enhanceImage(canvas,ctx,w,h){
+ const imgData=ctx.getImageData(0,0,w,h);
+ const data=imgData.data;
+ // Increase contrast + grayscale
+ for(let i=0;i<data.length;i+=4){
+  const gray=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
+  // Boost contrast
+  const boosted=gray<128?gray*0.7:Math.min(255,gray*1.3);
+  data[i]=data[i+1]=data[i+2]=boosted;
+ }
+ ctx.putImageData(imgData,0,0);
+}
+
+// Try multiple patterns to extract registration
+function extractRegistration(text){
+ const t=text.toUpperCase().replace(/\s+/g,'');
+ 
+ // Pattern 1: Standard UK — AA00AAA
+ let m=t.match(/([A-Z]{2}\d{2}[A-Z0-9]{3})/);
+ if(m)return m[1];
+ 
+ // Pattern 2: Fix common OCR mistakes then retry
+ const fixed=t
+  .replace(/[0O]{2,}/g,'O')
+  .replace(/[1I]{2,}/g,'I')
+  .replace(/0/g,'O')
+  .replace(/1/g,'I')
+  .replace(/8/g,'B')
+  .replace(/5/g,'S')
+  .replace(/2/g,'Z');
+ 
+ m=fixed.match(/([A-Z]{2}\d{2}[A-Z0-9]{3})/);
+ if(m)return m[1];
+ 
+ // Pattern 3: Relaxed — find 7-char block with mix of letters/numbers
+ const chunks=t.match(/[A-Z0-9]{6,9}/g)||[];
+ for(const c of chunks){
+  if(/^[A-Z]{1,3}\d{1,4}[A-Z0-9]{2,4}$/.test(c)){
+   const padded=c.length===7?c:'NX'+c.slice(-5);
+   if(validReg(padded))return padded;
+  }
+ }
+ 
+ return null;
+}
+
 $('scanNow').onclick=async()=>{
  const v=$('video'),c=$('ocrCanvas');
  if(!v.videoWidth){alert('Camera not ready');return;}
@@ -235,26 +286,28 @@ $('scanNow').onclick=async()=>{
  $('scanStatus').textContent='📸 Capturing…';
  $('scanStatus').className='scan-status loading';
  
- // Crop to plate zone only
+ // Capture full frame first
  const w=v.videoWidth,h=v.videoHeight;
- const sx=Math.round(w*.1), sy=Math.round(h*.35), sw=Math.round(w*.8), sh=Math.round(h*.25);
- c.width=400;c.height=120;
+ // Crop to centre where plate should be
+ const sx=Math.round(w*.05), sy=Math.round(h*.35), sw=Math.round(w*.9), sh=Math.round(h*.3);
+ c.width=600;c.height=200;
  const ctx=c.getContext('2d');
  
- // Draw + enhance contrast
+ // Draw + enhance
  ctx.drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
+ enhanceImage(c,ctx,c.width,c.height);
  
- // Convert to base64
- const imageData=c.toDataURL('image/jpeg',0.8);
+ // Show preview of what's being sent
+ const preview=c.toDataURL('image/jpeg',0.9);
  
  try{
-  // Use free OCR.space API — no account needed, works instantly
   const formData=new FormData();
-  formData.append('base64Image',imageData);
+  formData.append('base64Image',preview);
   formData.append('language','eng');
   formData.append('isOverlayRequired','false');
   formData.append('scale','true');
   formData.append('detectOrientation','true');
+  formData.append('OCREngine','2'); // Better engine
   
   const res=await fetch('https://api.ocr.space/parse/image',{
     method:'POST',
@@ -264,34 +317,36 @@ $('scanNow').onclick=async()=>{
   
   const data=await res.json();
   
-  if(data.IsErroredOnProcessing||!data.ParsedResults?.length){
-    throw new Error('No text found');
+  let rawText='';
+  if(!data.IsErroredOnProcessing&&data.ParsedResults?.length>0){
+    rawText=data.ParsedResults[0].ParsedText||'';
   }
   
-  const text=data.ParsedResults[0].ParsedText||'';
-  $('scanStatus').textContent='✅ Read: '+(text.trim()||'…');
-  $('scanStatus').className='scan-status success';
+  // Show what was read
+  $('readPreview').classList.remove('hidden');
+  $('readPreview').innerHTML=`<strong>Read:</strong> ${rawText.trim()||'(nothing detected)'}`;
   
-  // Extract UK plate pattern — fix common OCR errors
-  let cleaned=text.toUpperCase()
-   .replace(/\s+/g,'')
-   .replace(/[^A-Z0-9]/g,'')
-   .replace(/0/g,'O') // OCR confuses zero ↔ O
-   .replace(/1/g,'I'); // OCR confuses one ↔ I
+  if(!rawText.trim()){
+    $('scanStatus').textContent='⚠️ No text seen — brighten & hold still';
+    $('scanStatus').className='scan-status.error';
+    return;
+  }
   
-  // Try standard UK format: AA00AAA
-  const match=cleaned.match(/([A-Z]{2}\d{2}[A-Z0-9]{3})/);
-  if(match){
-    matchAndHighlight(match[1]);
+  const found=extractRegistration(rawText);
+  
+  if(found){
+    $('scanStatus').textContent=`✅ Found: ${found}`;
+    $('scanStatus').className='scan-status.success';
+    // Auto-match after short delay
+    setTimeout(()=>matchAndHighlight(found),600);
   }else{
-    // Fallback: show what was read so user can use manual
-    $('scanStatus').textContent='⚠️ Not recognised — use TYPE IT below';
-    $('scanStatus').className='scan-status error';
+    $('scanStatus').textContent='⚠️ Not recognised — type it below';
+    $('scanStatus').className='scan-status.error';
   }
   
  }catch(err){
-  $('scanStatus').textContent='⚠️ Scan failed — TYPE IT instead';
-  $('scanStatus').className='scan-status error';
+  $('scanStatus').textContent='⚠️ Scan failed — TYPE IT below';
+  $('scanStatus').className='scan-status.error';
  }
 };
 
