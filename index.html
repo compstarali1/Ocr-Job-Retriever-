@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Reg Scanner — Proven Flashlight</title>
+<title>Reg Scanner — Samsung Flashlight FIX</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{--bg:#000;--card:#111;--line:#333;--text:#fff;--muted:#aaa;--cyan:#0ff;--green:#0f8;--amber:#fa0;--scan:#f29;--found-top:#0cf;--red:#f44;--purple:#a5f}
@@ -20,9 +20,8 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 .process{background:linear-gradient(145deg,#0ce,#079)}
 .clear{background:linear-gradient(145deg,#555,#333)}
 .exportbtn{background:linear-gradient(145deg,#4a6,#284)}
-/* ✅ FLASHLIGHT BUTTON — matches reference style */
 .torch-idle{background:#ffcc00;color:#000;font-weight:bold}
-.torch-active{background:#ffd700;color:#000;font-weight:bold;box-shadow:0 0 15px #ffd70066}
+.torch-active{background:#ffd700;color:#000;font-weight:bold;box-shadow:0 0 20px #ffd700}
 .torch-disabled{background:#555;color:#999;cursor:not-allowed}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
 .stat{background:#1a1a1a;border:1px solid #333;border-radius:10px;text-align:center;padding:10px}
@@ -48,6 +47,7 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 .notify.found{background:#163a2e;border:1px solid var(--green);color:#9efc9e}
 .notify.unknown{background:#3a1e1e;border:1px solid var(--red);color:#fbb}
 .notify.duplicate{background:#2f1f44;border:1px solid var(--purple);color:#dcf}
+.notify.info{background:#1e2b3a;border:1px solid #0af;color:#adf}
 .export-modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:10000;opacity:0;visibility:hidden;transition:.2s}
 .export-modal.show{opacity:1;visibility:visible}
 .export-box{background:#1a1a1a;border:1px solid #444;border-radius:14px;padding:20px;margin:16px;max-width:340px;width:100%}
@@ -71,8 +71,8 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 <body>
 
 <div id="notify" class="notify"></div>
-<h1>🚐 Reg Scanner — Flashlight Fixed</h1>
-<p>✅ Using proven flashlight method from reference code</p>
+<h1>🚐 Reg Scanner — Samsung Flashlight FIX</h1>
+<p>✅ Samsung-optimized • LED only • No screen tricks</p>
 
 <div class="panel">
  <textarea id="regBox"></textarea>
@@ -107,8 +107,7 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
   <div class="video-wrap"><video id="video" autoplay muted playsinline></video><div class="frame"><div class="scanline"></div></div></div>
   <div class="scan-status" id="scanStatus">🔴 Starting…</div>
   <div class="scanner-controls">
-   <!-- ✅ FLASHLIGHT BUTTON — exactly as reference -->
-   <button class="btn torch-idle" id="torchBtn" disabled>🔦 Flashlight</button>
+   <button class="btn torch-idle" id="torchBtn" disabled>🔦 Loading…</button>
    <button class="btn close" id="closeScan">✕ STOP</button>
   </div>
  </div>
@@ -180,190 +179,220 @@ NX72VLT
 NX72VLO`;
 
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
-function looksLikePlate(s){
- return s.length>=6 && s.length<=8 && /[A-Z]/.test(s) && /[0-9]/.test(s);
-}
-function showNotify(msg,type='info'){$('notify').className='notify show '+type;$('notify').textContent=msg;setTimeout(()=>$('notify').classList.remove('show'),1500)}
+function looksLikePlate(s){return s.length>=6 && s.length<=8 && /[A-Z]/.test(s) && /[0-9]/.test(s)}
+function showNotify(msg,type='info'){$('notify').className='notify show '+type;$('notify').textContent=msg;setTimeout(()=>$('notify').classList.remove('show'),2000)}
 
 // Sounds
 function soundFound(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
 function soundUnknown(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(220,c.currentTime);o.frequency.exponentialRampToValueAtTime(110,c.currentTime+.2);g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
 function soundDuplicate(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(523,c.currentTime);o.frequency.setValueAtTime(659,c.currentTime+.1);g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
 
-// ✅ FLASHLIGHT — EXACT METHOD FROM YOUR REFERENCE
-async function initFlashlight() {
-  const torchBtn = $('torchBtn');
-  torchOn = false;
-  
-  if (!track) {
-    torchBtn.disabled = true;
-    torchBtn.textContent = '🔦 No Camera';
-    return;
-  }
-  
-  // Check capabilities — exactly as reference
-  const capabilities = track.getCapabilities();
-  
-  if ('torch' in capabilities) {
-    torchBtn.disabled = false;
-    torchBtn.className = 'btn torch-idle';
-    torchBtn.textContent = '🔦 Turn Flashlight ON';
-    showNotify('✅ Flashlight supported','found');
-  } else {
-    torchBtn.disabled = true;
-    torchBtn.className = 'btn torch-disabled';
-    torchBtn.textContent = '🔦 Not Supported';
-    showNotify('⚠️ Flashlight not supported on this device','unknown');
-  }
+// ─── SAMSUNG-OPTIMIZED FLASHLIGHT ───
+let supportMode = null; // 'torch' | 'continuous' | null
+
+async function checkFlashSupport(){
+ if(!track)return null;
+ const cap = track.getCapabilities();
+ 
+ // Method 1: Standard torch
+ if('torch' in cap){
+  supportMode = 'torch';
+  return 'torch';
+ }
+ // Method 2: Samsung uses fillLightMode = 'continuous'
+ if(cap.fillLightMode && cap.fillLightMode.includes('continuous')){
+  supportMode = 'continuous';
+  return 'continuous';
+ }
+ // Method 3: 'flash' fallback
+ if(cap.fillLightMode && cap.fillLightMode.includes('flash')){
+  supportMode = 'flash';
+  return 'flash';
+ }
+ return null;
 }
 
-async function toggleFlash() {
-  if (!track) return;
-  
-  const torchBtn = $('torchBtn');
-  
-  try {
-    torchOn = !torchOn;
-    // Exact call from reference code
-    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
-    
-    if (torchOn) {
-      torchBtn.className = 'btn torch-active';
-      torchBtn.textContent = '🔦 Turn OFF';
-      showNotify('✅ FLASHLIGHT ON','found');
-    } else {
-      torchBtn.className = 'btn torch-idle';
-      torchBtn.textContent = '🔦 Turn Flashlight ON';
-      showNotify('🔦 FLASHLIGHT OFF','info');
-    }
-  } catch (err) {
-    console.error('Torch toggle failed:', err);
-    showNotify('❌ Unable to toggle flashlight','unknown');
-    torchOn = !torchOn; // revert
+async function setTorchLED(on){
+ if(!track || !supportMode) return false;
+ 
+ try{
+  if(supportMode === 'torch'){
+   await track.applyConstraints({advanced: [{ torch: on }]});
+   return true;
   }
+  if(supportMode === 'continuous'){
+   // ✅ SAMSUNG HACK — this is what works on your phone
+   await track.applyConstraints({advanced: [{ fillLightMode: on ? 'continuous' : 'off' }]});
+   return true;
+  }
+  if(supportMode === 'flash'){
+   await track.applyConstraints({advanced: [{ fillLightMode: on ? 'flash' : 'off' }]});
+   return true;
+  }
+ }catch(e){
+  console.log('Method failed, trying next...', e);
+ }
+ return false;
+}
+
+async function toggleFlash(){
+ if(!track) return showNotify('❌ Start scanner first','unknown');
+ 
+ torchOn = !torchOn;
+ const ok = await setTorchLED(torchOn);
+ const btn = $('torchBtn');
+ 
+ if(ok){
+  if(torchOn){
+   btn.className = 'btn torch-active';
+   btn.textContent = '🔦 LED ON';
+   showNotify('✅ FLASHLIGHT ON — LED should be lit','found');
+  }else{
+   btn.className = 'btn torch-idle';
+   btn.textContent = '🔦 TURN LED ON';
+   showNotify('🔦 FLASHLIGHT OFF','info');
+  }
+ }else{
+  torchOn = !torchOn; // revert
+  btn.className = 'btn torch-disabled';
+  btn.textContent = '🔦 NOT SUPPORTED';
+  showNotify('❌ Samsung: Use Chrome + manual torch from top panel','unknown');
+ }
 }
 
 // Data
-function buildList(t){
-  return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({reg:r,done:false,found:false,customNum:''}));
-}
-function saveData(){localStorage.setItem(SAVE_KEY,JSON.stringify({listText:$('regBox').value,items}));}
+function buildList(t){return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({reg:r,done:false,found:false,customNum:''}))}
+function saveData(){localStorage.setItem(SAVE_KEY,JSON.stringify({listText:$('regBox').value,items}))}
 function loadData(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d?.items?.length){items=d.items;$('regBox').value=d.listText;return true}}catch(e){}return false}
-function updateCustomNum(index,value){items[index].customNum=value.replace(/[^0-9]/g,'').slice(0,4);saveData();}
+function updateCustomNum(index,value){items[index].customNum=value.replace(/[^0-9]/g,'').slice(0,4);saveData()}
 
 // Export
 function getTodayDate(){const d=new Date();return `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;}
 function generateExportText(filterType){
-  let filteredItems=[],headerLabel='';
-  if(filterType==='all'){filteredItems=[...items];headerLabel='COMPLETE JOB LIST'}
-  else if(filterType==='completed'){filteredItems=items.filter(i=>i.done);headerLabel='COMPLETED JOBS'}
-  else if(filterType==='remaining'){filteredItems=items.filter(i=>!i.done);headerLabel='REMAINING JOBS'}
-  let text=`${headerLabel}\nDate: ${new Date().toLocaleDateString()}\nTotal: ${filteredItems.length}\n${'━'.repeat(30)}\n\n`;
-  filteredItems.forEach((item,idx)=>{
-    const status=item.done?'[DONE]':(item.found?'[FOUND]':'[PENDING]');
-    text+=`${String(idx+1).padStart(3,'0')}  ${item.reg}  Ref: ${item.customNum||'----'}  ${status}\n`;
-  });
-  return text;
+ let filteredItems=[],headerLabel='';
+ if(filterType==='all'){filteredItems=[...items];headerLabel='COMPLETE JOB LIST'}
+ else if(filterType==='completed'){filteredItems=items.filter(i=>i.done);headerLabel='COMPLETED JOBS'}
+ else if(filterType==='remaining'){filteredItems=items.filter(i=>!i.done);headerLabel='REMAINING JOBS'}
+ let text=`${headerLabel}\nDate: ${new Date().toLocaleDateString()}\nTotal: ${filteredItems.length}\n${'━'.repeat(30)}\n\n`;
+ filteredItems.forEach((item,idx)=>{
+  const status=item.done?'[DONE]':(item.found?'[FOUND]':'[PENDING]');
+  text+=`${String(idx+1).padStart(3,'0')}  ${item.reg}  Ref: ${item.customNum||'----'}  ${status}\n`;
+ });
+ return text;
 }
 function getFileName(filterType){
-  const date=getTodayDate();
-  if(filterType==='all')return `HPC-JOBS-LIST-(${date}).txt`;
-  if(filterType==='completed')return `HPC-COMPLETED-JOBS-(${date}).txt`;
-  if(filterType==='remaining')return `HPC-PENDING-JOBS-(${date}).txt`;
+ const date=getTodayDate();
+ if(filterType==='all')return `HPC-JOBS-LIST-(${date}).txt`;
+ if(filterType==='completed')return `HPC-COMPLETED-JOBS-(${date}).txt`;
+ return `HPC-PENDING-JOBS-(${date}).txt`;
 }
 function downloadFile(filterType){
-  const text=generateExportText(filterType),name=getFileName(filterType);
-  const blob=new Blob([text],{type:'text/plain'}),url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
-  showNotify('✅ Exported: '+name,'found');$('exportModal').classList.remove('show');
+ const text=generateExportText(filterType),name=getFileName(filterType);
+ const blob=new Blob([text],{type:'text/plain'}),url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+ showNotify('✅ Exported: '+name,'found');$('exportModal').classList.remove('show');
 }
 
 // Render
 function render(){
-  const f=items.filter(i=>i.found&&!i.done),p=items.filter(i=>!i.found&&!i.done),d=items.filter(i=>i.done);
-  $('foundSection').style.display=f.length?'block':'none';
-  $('foundList').innerHTML=f.map(item=>{const idx=items.indexOf(item);return `<div class="item found-top"><div class="tick" onclick="markDone(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-found">FOUND</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
-  $('pendingList').innerHTML=p.map(item=>{const idx=items.indexOf(item);return `<div class="item"><div class="tick" onclick="markDone(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-pending">PENDING</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
-  $('doneList').innerHTML=d.map(item=>{const idx=items.indexOf(item);return `<div class="item done"><div class="tick checked" onclick="unmark(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-done">DONE</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
-  $('foundCount').textContent=f.length;$('pendingCount').textContent=p.length;$('doneCount').textContent=d.length;$('totalCount').textContent=items.length;
+ const f=items.filter(i=>i.found&&!i.done),p=items.filter(i=>!i.found&&!i.done),d=items.filter(i=>i.done);
+ $('foundSection').style.display=f.length?'block':'none';
+ $('foundList').innerHTML=f.map(item=>{const idx=items.indexOf(item);return `<div class="item found-top"><div class="tick" onclick="markDone(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-found">FOUND</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
+ $('pendingList').innerHTML=p.map(item=>{const idx=items.indexOf(item);return `<div class="item"><div class="tick" onclick="markDone(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-pending">PENDING</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
+ $('doneList').innerHTML=d.map(item=>{const idx=items.indexOf(item);return `<div class="item done"><div class="tick checked" onclick="unmark(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-done">DONE</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
+ $('foundCount').textContent=f.length;$('pendingCount').textContent=p.length;$('doneCount').textContent=d.length;$('totalCount').textContent=items.length;
 }
 function markDone(i){items[i].done=true;items[i].found=false;saveData();render()}
 function unmark(i){items[i].done=false;saveData();render()}
 
 // Scanner
 $('openScanBtn').onclick=async()=>{
-  if(!items.length)return alert('Build list first');
-  $('scanner').style.display='block';
-  $('scanStatus').textContent='🔐 Requesting camera…';
-  try{
-    // ✅ EXACT camera request from reference: facingMode: environment
-    stream=await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } }
-    });
-    $('video').srcObject=stream;
-    track=stream.getVideoTracks()[0]; // ✅ store track exactly as reference
-    $('scanStatus').textContent='✅ Camera ready';
-    
-    // ✅ Check flashlight support — exactly as reference
-    await initFlashlight();
-    scanLoop();
-  }catch(e){
-    $('scanStatus').textContent='❌ Camera access denied — Allow in Settings';
-    console.error('Camera error:',e);
+ if(!items.length)return alert('Build list first');
+ $('scanner').style.display='block';
+ $('scanStatus').textContent='🔐 Requesting camera…';
+ 
+ try{
+  // Open camera — Samsung needs explicit width/height
+  stream = await navigator.mediaDevices.getUserMedia({
+   video: {
+    facingMode: { ideal: 'environment' },
+    width: { ideal: 1280 },
+    height: { ideal: 720 }
+   },
+   audio: false
+  });
+  
+  $('video').srcObject = stream;
+  track = stream.getVideoTracks()[0];
+  
+  // Check which flashlight method works
+  const mode = await checkFlashSupport();
+  const btn = $('torchBtn');
+  
+  if(mode){
+   btn.disabled = false;
+   btn.className = 'btn torch-idle';
+   btn.textContent = '🔦 TURN LED ON';
+   $('scanStatus').innerHTML = `✅ Ready — Flashlight: <b>${mode}</b> mode`;
+  }else{
+   btn.disabled = true;
+   btn.className = 'btn torch-disabled';
+   btn.textContent = '🔦 USE PHONE TORCH';
+   $('scanStatus').innerHTML = '⚠️ Browser cannot control LED.<br>👉 Swipe down from top → tap Torch icon manually';
   }
+  
+  scanLoop();
+  
+ }catch(e){
+  $('scanStatus').textContent='❌ Camera denied — Allow in Settings';
+  console.error('Camera error:',e);
+ }
 };
 
 $('closeScan').onclick=async()=>{
-  // Turn flashlight off before closing
-  if(torchOn && track){
-    try{await track.applyConstraints({advanced:[{torch:false}]})}catch(e){}
-  }
-  if(stream)stream.getTracks().forEach(t=>t.stop());
-  stream=null;track=null;torchOn=false;
-  $('scanner').style.display='none';
-  $('torchBtn').disabled=true;
-  $('torchBtn').className='btn torch-idle';
-  $('torchBtn').textContent='🔦 Flashlight';
+ if(torchOn && track) await setTorchLED(false);
+ if(stream) stream.getTracks().forEach(t=>t.stop());
+ stream=null;track=null;torchOn=false;supportMode=null;
+ $('scanner').style.display='none';
+ $('torchBtn').disabled=true;
+ $('torchBtn').className='btn torch-idle';
+ $('torchBtn').textContent='🔦 Loading…';
 };
 
 async function scanLoop(){
-  if(!stream)return;
-  const v=$('video'),c=$('canvas');
-  if(v.videoWidth){
-    c.width=Math.round(v.videoWidth*.86);c.height=Math.round(v.videoHeight*.22);
-    c.getContext('2d').drawImage(v,Math.round(v.videoWidth*.07),Math.round(v.videoHeight*.39),c.width,c.height,0,0,c.width,c.height);
-    try{
-      const r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:6});
-      const found=clean(r.data.text);
-      if(!looksLikePlate(found)){setTimeout(scanLoop,800);return}
-      const match=items.find(i=>found.includes(i.reg));
-      if(match){
-        if(!match.found && !match.done && Date.now()-lastHit>2500){
-          lastHit=Date.now();match.found=true;soundFound();showNotify('✅ FOUND: '+match.reg,'found');
-          $('scanStatus').textContent='✅ FOUND: '+match.reg+' — Enter your 4-digit number';
-          saveData();render();
-        }else if((match.found||match.done)&&Date.now()-lastHit>2500){
-          lastHit=Date.now();soundDuplicate();showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
-          $('scanStatus').textContent='🔄 Already processed';
-        }
-      }else{
-        if(Date.now()-lastHit>2500){
-          lastHit=Date.now();soundUnknown();showNotify('❌ UNKNOWN REG: '+found,'unknown');
-          $('scanStatus').textContent='❌ Not in list: '+found;
-        }
-      }
-    }catch(e){}
-  }
-  setTimeout(scanLoop,800);
+ if(!stream)return;
+ const v=$('video'),c=$('canvas');
+ if(v.videoWidth){
+  c.width=Math.round(v.videoWidth*.86);c.height=Math.round(v.videoHeight*.22);
+  c.getContext('2d').drawImage(v,Math.round(v.videoWidth*.07),Math.round(v.videoHeight*.39),c.width,c.height,0,0,c.width,c.height);
+  try{
+   const r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:6});
+   const found=clean(r.data.text);
+   if(!looksLikePlate(found)){setTimeout(scanLoop,800);return}
+   const match=items.find(i=>found.includes(i.reg));
+   if(match){
+    if(!match.found && !match.done && Date.now()-lastHit>2500){
+      lastHit=Date.now();match.found=true;soundFound();showNotify('✅ FOUND: '+match.reg,'found');
+      $('scanStatus').textContent='✅ FOUND: '+match.reg+' — Enter your 4-digit number';
+      saveData();render();
+    }else if((match.found||match.done)&&Date.now()-lastHit>2500){
+      lastHit=Date.now();soundDuplicate();showNotify('🔄 DUPLICATE: '+match.reg,'duplicate');
+    }
+   }else{
+    if(Date.now()-lastHit>2500){
+      lastHit=Date.now();soundUnknown();showNotify('❌ UNKNOWN REG: '+found,'unknown');
+    }
+   }
+  }catch(e){}
+ }
+ setTimeout(scanLoop,800);
 }
 
-// Export controls
-$('exportBtn').onclick=()=>{$('exportModal').classList.add('show')};
-$('exportClose').onclick=()=>{$('exportModal').classList.remove('show')};
-document.querySelectorAll('.export-option[data-type]').forEach(btn=>{btn.onclick=()=>downloadFile(btn.dataset.type)});
-
-// Attach flashlight toggle
+// Attach
 $('torchBtn').onclick=toggleFlash;
+$('exportBtn').onclick=()=>$('exportModal').classList.add('show');
+$('exportClose').onclick=()=>$('exportModal').classList.remove('show');
+document.querySelectorAll('.export-option[data-type]').forEach(b=>b.onclick=()=>downloadFile(b.dataset.type));
 
 window.onload=()=>{if(!loadData()){$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST)}render()};
 $('processBtn').onclick=()=>{items=buildList($('regBox').value);saveData();render()};
