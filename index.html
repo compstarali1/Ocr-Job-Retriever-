@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
-<title>Live Reg Scanner — Found to Top</title>
+<title>Live Reg Scanner — Save & Alerts</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{
  --bg:#07090d;--card:#11151c;--line:#29313d;
  --text:#f5f7fa;--muted:#8f9aaa;--cyan:#00d9ff;
  --green:#16e38a;--amber:#ffb020;--scan:#ff2d9a;
- --found-top:#00b8ff;
+ --found-top:#00b8ff;--red:#ff4055;--purple:#a855f7;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
-body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto}
+body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto;padding-bottom:180px}
 h1{font-size:1.1rem;color:var(--cyan);margin-bottom:4px}
 p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
 .panel{background:linear-gradient(145deg,#121820,#0e1218);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
@@ -26,10 +26,10 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #00d9ff22}
 .scanbtn{background:linear-gradient(145deg,#ff39aa,#a90068)}
 .process{background:linear-gradient(145deg,#00c8ed,#007d9b)}
 .clear{background:linear-gradient(145deg,#555e69,#303740)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
 .stat{background:#10151c;border:1px solid var(--line);border-radius:10px;text-align:center;padding:10px}
 .stat b{display:block;font-size:1.3rem}.stat span{font-size:.67rem;color:var(--muted)}
-#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
+#foundCount{color:var(--found-top)}#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
 .list-title{font-size:.86rem;padding:8px 4px 6px;border-bottom:1px solid var(--line);margin:10px 0 5px}
 .pending{color:var(--amber)}.done{color:var(--green)}
 .found-section{border-bottom:1px dashed #224455;margin-bottom:10px;padding-bottom:6px}
@@ -44,8 +44,16 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 .tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
 .tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
 .hidden{display:none!important}
-/* Scanner — stays open */
-#scanner{position:fixed;bottom:0;left:0;right:0;background:#020406f2;z-index:999;border-top:1px solid #333;padding:12px 15px}
+
+/* Notification Popup */
+.notify{position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:10px;font-weight:bold;z-index:9999;opacity:0;transition:opacity .2s ease;pointer-events:none}
+.notify.show{opacity:1}
+.notify.found{background:#163a2e;border:1px solid var(--green);color:#9ef5c9}
+.notify.unknown{background:#3a1e1e;border:1px solid var(--red);color:#ffb8b8}
+.notify.duplicate{background:#2f1f44;border:1px solid var(--purple);color:#d8c4ff}
+
+/* Scanner — Bottom Bar */
+#scanner{position:fixed;bottom:0;left:0;right:0;background:#020406f8;z-index:998;border-top:1px solid #333;padding:12px 15px;box-shadow:0 -5px 20px #0003}
 .scanbox{max-width:540px;margin:0 auto}
 .video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:8px 0}
 #video{width:100%;height:100%;object-fit:cover;display:block}
@@ -61,8 +69,11 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 </head>
 <body>
 
-<h1>🚐 Live Scanner — Found to Top</h1>
-<p>✅ Scanner stays open • Found plates move to TOP • Tick when done</p>
+<!-- Notification Area -->
+<div id="notify" class="notify"></div>
+
+<h1>🚐 Live Reg Scanner — Smart Save</h1>
+<p>✅ Auto-saves • Duplicate skip • Unknown alert • Distinct sounds</p>
 
 <div class="panel">
  <div class="panel-title">📋 REGISTRATION LIST</div>
@@ -70,7 +81,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
  <div class="row">
   <button class="btn process" id="processBtn">⚡ REBUILD LIST</button>
   <button class="btn scanbtn" id="openScanBtn">📷 START LIVE SCAN</button>
-  <button class="btn clear" id="clearBtn">Clear</button>
+  <button class="btn clear" id="clearBtn">🗑️ RESET ALL</button>
  </div>
 </div>
 
@@ -91,7 +102,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 <div class="list-title done">✅ COMPLETED</div>
 <div id="doneList"></div>
 
-<!-- SCANNER — BOTTOM, STAYS OPEN -->
+<!-- SCANNER — Stays at bottom, stays open -->
 <div id="scanner" style="display:none">
  <div class="scanbox">
   <div class="video-wrap">
@@ -108,10 +119,11 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 
 <script>
 const $=id=>document.getElementById(id);
-const regBox=$('regBox'), foundList=$('foundList'), pendingList=$('pendingList'), doneList=$('doneList');
+const SAVE_KEY = 'regScanner_savedData';
+const regBox=$('regBox'), notify=$('notify'), foundList=$('foundList'), pendingList=$('pendingList'), doneList=$('doneList');
 let items=[], scanning=false, stream=null, lastHit=0, scanLoopActive=false;
 
-// PRE-LOADED LIST
+// PRE-LOADED BASE LIST
 const PRESET_LIST = `NX22ULU
 NX22ULV
 NX22UMD
@@ -160,26 +172,64 @@ NX72VLC
 NX72VLT
 NX72VLO`;
 
+// ─── UTIL ───
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
-function beep(){
- try{
-  const c=new (window.AudioContext||webkitAudioContext);
-  const o=c.createOscillator(),g=c.createGain();
-  o.type='sine';o.frequency.value=880;
-  g.gain.setValueAtTime(.3,c.currentTime);
-  g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);
-  o.connect(g).connect(c.destination);
-  o.start();o.stop(c.currentTime+.35);
- }catch(e){}
+
+// ─── SOUNDS ───
+function soundFound(){
+ try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();
+ o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.3,c.currentTime);
+ g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);
+ o.start();o.stop(c.currentTime+.35);}catch(e){}
 }
+function soundUnknown(){
+ try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();
+ o.type='sawtooth';o.frequency.setValueAtTime(220,c.currentTime);o.frequency.exponentialRampToValueAtTime(110,c.currentTime+.2);
+ g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);
+ o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}
+}
+function soundDuplicate(){
+ try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();
+ o.type='triangle';o.frequency.setValueAtTime(523,c.currentTime);o.frequency.setValueAtTime(659,c.currentTime+.1);
+ g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);
+ o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}
+}
+
+// ─── NOTIFICATIONS ───
+function showNotify(msg, type){
+ notify.className='notify show '+type;notify.textContent=msg;
+ setTimeout(()=>notify.classList.remove('show'),1000);
+}
+
+// ─── DATA & SAVE ───
 function buildList(text){
  return text.split('\n').map(r=>clean(r)).filter(r=>r.length>4)
   .map(reg=>({reg,done:false,found:false}));
 }
-window.onload=()=>{regBox.value=PRESET_LIST;items=buildList(PRESET_LIST);render()};
-$('processBtn').onclick=()=>{items=buildList(regBox.value);render()};
-$('clearBtn').onclick=()=>{regBox.value='';regBox.focus()};
+function saveData(){
+ localStorage.setItem(SAVE_KEY,JSON.stringify({
+  listText:regBox.value,items:items
+ }));
+}
+function loadData(){
+ try{
+  const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
+  if(d?.items?.length){
+   regBox.value=d.listText;items=d.items;return true;
+  }
+ }catch(e){}
+ return false;
+}
+function resetAll(){
+ if(confirm('⚠️ Reset ALL progress and restore base list?')){
+  localStorage.removeItem(SAVE_KEY);
+  regBox.value=PRESET_LIST;
+  items=buildList(PRESET_LIST);
+  render();
+ }
+}
 
+// ─── RENDER ───
 function render(){
  const foundItems=items.filter(i=>i.found && !i.done);
  const pendingItems=items.filter(i=>!i.found && !i.done);
@@ -188,22 +238,22 @@ function render(){
  $('foundSection').style.display=foundItems.length?'block':'none';
  foundList.innerHTML='';pendingList.innerHTML='';doneList.innerHTML='';
 
- foundItems.forEach((item,i)=>{
+ foundItems.forEach((item)=>{
   const el=document.createElement('div');
   el.className='item found-top'+(item.justFound?' just-found':'');
   el.dataset.reg=item.reg;
   el.innerHTML=`<div class="tick" onclick="markDone(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;
   foundList.appendChild(el);
-  if(item.justFound) setTimeout(()=>{item.justFound=false;render()},600);
+  if(item.justFound) setTimeout(()=>{item.justFound=false;saveData();render()},600);
  });
- pendingItems.forEach((item,i)=>{
+ pendingItems.forEach((item)=>{
   const el=document.createElement('div');
   el.className='item';
   el.dataset.reg=item.reg;
   el.innerHTML=`<div class="tick" onclick="markDone(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;
   pendingList.appendChild(el);
  });
- doneItems.forEach((item,i)=>{
+ doneItems.forEach((item)=>{
   const el=document.createElement('div');
   el.className='item done';
   el.innerHTML=`<div class="tick checked" onclick="unmark(${items.indexOf(item)})"></div><div class="reg">${item.reg}</div>`;
@@ -215,10 +265,25 @@ function render(){
  $('doneCount').textContent=doneItems.length;
  $('totalCount').textContent=items.length;
 }
-function markDone(idx){items[idx].done=true;items[idx].found=false;render()}
-function unmark(idx){items[idx].done=false;render()}
+function markDone(idx){items[idx].done=true;items[idx].found=false;saveData();render()}
+function unmark(idx){items[idx].done=false;saveData();render()}
 
-// START LIVE SCAN — stays open
+// ─── INIT ───
+window.onload=()=>{
+ if(!loadData()){
+  regBox.value=PRESET_LIST;
+  items=buildList(PRESET_LIST);
+ }
+ render();
+};
+$('processBtn').onclick=()=>{
+ items=buildList(regBox.value);
+ if(!items.length)return alert('No registrations found');
+ saveData();render();
+};
+$('clearBtn').onclick=resetAll;
+
+// ─── LIVE SCANNER ───
 $('openScanBtn').onclick=async()=>{
  if(!items.length)return alert('Build list first');
  $('scanner').style.display='block';
@@ -260,14 +325,33 @@ async function continuousScan(){
     tessedit_pageseg_mode:6
    });
    const found=clean(result.data.text);
-   const match=items.find(i=>!i.done && !i.found && found.includes(i.reg));
-   if(match && Date.now()-lastHit>2500){
+   
+   // Find match
+   const match=items.find(i=>found.includes(i.reg));
+   
+   if(match){
+    if(!match.found && !match.done && Date.now()-lastHit>2500){
+      // ✅ NEW FIND — move to top
+      lastHit=Date.now();
+      match.found=true;match.justFound=true;
+      soundFound();
+      showNotify('✅ FOUND: '+match.reg,'found');
+      $('scanStatus').textContent='✅ FOUND: '+match.reg;
+      saveData();render();
+      setTimeout(()=>$('foundSection').scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }else if((match.found || match.done) && Date.now()-lastHit>2500){
+      // ⚠️ DUPLICATE — already found/done
+      lastHit=Date.now();
+      soundDuplicate();
+      showNotify('🔄 DUPLICATE: '+match.reg+' — already processed','duplicate');
+      $('scanStatus').textContent='🔄 Already processed: '+match.reg;
+    }
+   }else if(found.length>=5 && Date.now()-lastHit>2500){
+    // ❌ UNKNOWN — only if enough chars read to be plausible
     lastHit=Date.now();
-    match.found=true;match.justFound=true;
-    beep();
-    $('scanStatus').textContent='✅ FOUND: '+match.reg+' — at top!';
-    render();
-    setTimeout(()=>$('foundSection').scrollIntoView({behavior:'smooth',block:'start'}),100);
+    soundUnknown();
+    showNotify('❌ UNKNOWN REGISTRATION','unknown');
+    $('scanStatus').textContent='❌ Not in list';
    }
   }catch(e){}
  }
