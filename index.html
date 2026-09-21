@@ -6,10 +6,9 @@
 <meta name="theme-color" content="#07090d">
 <title>Enfield Dotcom — OCR Scanner ✅ WORKING</title>
 
-<!-- ✅ TESSERACT.JS — REQUIRED FOR OCR → DO NOT REMOVE -->
+<!-- ✅ CDN = WORKS EVERYWHERE → NO FOLDER NEEDED -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
- <script
 <style>
 :root{
  --bg:#07090d;--card:#11151c;--line:#29313d;--text:#f5f7fa;--muted:#8f9aaa;
@@ -131,7 +130,7 @@ const $=id=>document.getElementById(id);
 // ✅ CHECK TESSERACT IS LOADED
 function checkTesseract(){
  if(!window.Tesseract){
-  alert('❌ Tesseract.js NOT FOUND!\nCheck the script tag in your HTML.');
+  alert('❌ Tesseract.js NOT FOUND!\nUse the CDN link in the HTML head.');
   return false;
  }
  return true;
@@ -206,12 +205,13 @@ async function getWorker(){
  $('scanStatus').textContent='📥 Loading OCR engine — first time only…';
  try{
   worker=await Tesseract.createWorker('eng',1,{
-   cacheMethod:'local', // Saves to device — instant next time
+   langPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/',
+   cacheMethod:'local',
    gzip:false
   });
   await worker.setParameters({
    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-   tessedit_pageseg_mode:'7' // Single line = FASTEST
+   tessedit_pageseg_mode:'7'
   });
   $('scanStatus').textContent='✅ Ready — tap SCAN NOW';
   $('scanStatus').classList.add('ready');
@@ -236,9 +236,9 @@ $('openScannerBtn').onclick=async()=>{
  try{
   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:360}},audio:false});
   $('video').srcObject=stream;
-  getWorker(); // Load in background
+  getWorker();
  }catch(e){
-  alert('⚠️ Camera permission denied.\nUse the TYPE IT box below instead.');
+  alert('⚠️ Camera permission denied.\nUse TYPE IT below instead.');
   $('scanner').classList.remove('open');
  }
 };
@@ -254,7 +254,6 @@ $('scanNow').onclick=async()=>{
  const v=$('video'),c=$('ocrCanvas');
  if(!v.videoWidth){isProcessing=false;return;}
  
- // Crop & shrink = FAST
  const w=v.videoWidth,h=v.videoHeight;
  const sx=Math.round(w*.1), sy=Math.round(h*.4), sw=Math.round(w*.8), sh=Math.round(h*.2);
  c.width=320;c.height=Math.round(320*(sh/sw));
