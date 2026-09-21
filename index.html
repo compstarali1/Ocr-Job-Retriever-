@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
-<title>Reg Scanner — Fast Match</title>
+<title>Live Reg Scanner — Pre‑Loaded</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{
@@ -40,8 +40,6 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 .tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
 .tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
 .hidden{display:none!important}
-
-/* Scanner Window */
 #scanner{display:none;position:fixed;inset:0;background:#020406ef;z-index:999;align-items:center;justify-content:center;padding:15px}
 #scanner.open{display:flex}
 .scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:14px}
@@ -51,6 +49,7 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 .scanline{position:absolute;left:4%;right:4%;top:50%;height:2px;background:#ff65bd;box-shadow:0 0 10px #ff2d9a;animation:sl 1.5s linear infinite}
 @keyframes sl{0%{top:42%}50%{top:58%}100%{top:42%}}
 .scan-status{text-align:center;padding:8px;color:#dbe3ea;font-size:.82rem}
+.scan-status.live{color:var(--green)}
 .controls{display:flex;gap:8px;margin-top:8px}
 .controls button{flex:1}
 .close{background:#333}
@@ -58,14 +57,14 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 </head>
 <body>
 
-<h1>🚐 Fast Reg Scanner</h1>
-<p>Paste list → Process → Scan → Auto‑jump to match</p>
+<h1>🚐 Live Reg Scanner — Ready List</h1>
+<p>✅ List pre‑loaded — just SCAN → Auto‑match → Beep → Jump</p>
 
 <div class="panel">
- <div class="panel-title">📋 YOUR REGISTRATION LIST</div>
- <textarea id="regBox" placeholder="NX22ULU&#10;NX22ULV&#10;NX72VGN&#10;one per line…"></textarea>
+ <div class="panel-title">📋 REGISTRATION LIST (pre‑loaded — edit if needed)</div>
+ <textarea id="regBox"></textarea>
  <div class="row">
-  <button class="btn process" id="processBtn">⚡ PROCESS LIST</button>
+  <button class="btn process" id="processBtn">⚡ REBUILD LIST</button>
   <button class="btn scanbtn" id="openScanBtn">📷 SCAN REG</button>
   <button class="btn clear" id="clearBtn">Clear</button>
  </div>
@@ -82,18 +81,16 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 <div class="list-title done">✅ COMPLETED</div>
 <div id="doneList"></div>
 
-<!-- SCANNER WINDOW -->
 <div id="scanner">
  <div class="scanbox">
-  <div class="panel-title">📷 AIM AT REG PLATE</div>
+  <div class="panel-title">📷 LIVE SCAN — Keep plate in frame</div>
   <div class="video-wrap">
    <video id="video" autoplay muted playsinline></video>
    <div class="frame"><div class="scanline"></div></div>
   </div>
-  <div class="scan-status" id="scanStatus">Loading camera…</div>
+  <div class="scan-status live" id="scanStatus">🔴 LIVE — scanning…</div>
   <div class="controls">
-   <button class="btn close" id="closeScan">✕ CLOSE</button>
-   <button class="btn scanbtn" id="scanNow">◎ SCAN</button>
+   <button class="btn close" id="closeScan">✕ STOP & CLOSE</button>
   </div>
  </div>
 </div>
@@ -102,12 +99,61 @@ border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom
 <script>
 const $=id=>document.getElementById(id);
 const regBox=$('regBox'), pendingList=$('pendingList'), doneList=$('doneList');
-let items=[], scanning=false, stream=null, lastHit=0;
+let items=[], scanning=false, stream=null, lastHit=0, scanLoopActive=false;
 
-// Normalise — remove spaces/symbols, uppercase
+// YOUR FULL LIST — PRE‑LOADED
+const PRESET_LIST = `NX22ULU
+NX22ULV
+NX22UMD
+NX22UML
+NX22UMO
+NX22UMR
+NX22UMY
+NX22UMZ
+NX22UNB
+NX22UNF
+NX22UNK
+NX22UNP
+NX72VGN
+NX72VEP
+NX72VFT
+NX72VGA
+NX72VGC
+NX72VGJ
+NX72VGL
+NX72VGM
+NX72VFO
+NX72VFV
+NX72VGF
+NX72VGO
+NX72VGR
+NX72VGY
+NX72VLL
+NX72VFL
+NX72VFN
+NX72VFP
+NX72VGD
+NX72VGG
+NX72VGK
+NX72VGP
+NX72VGT
+NX72VGU
+NX72VGV
+NX72VLR
+NX72VLW
+NX72VLY
+NX72VME
+NX72VKS
+NX72VLU
+NX72VMG
+NX72VLC
+NX72VLT
+NX72VLO`;
+
+// Normalise
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 
-// Beep sound
+// Beep
 function beep(){
  try{
   const c=new (window.AudioContext||webkitAudioContext);
@@ -120,19 +166,29 @@ function beep(){
  }catch(e){}
 }
 
-// Build list from pasted text
-$('processBtn').onclick=()=>{
- items=regBox.value.split('\n')
+// Build list
+function buildList(text){
+ return text.split('\n')
   .map(r=>clean(r))
-  .filter(r=>r.length>4);
+  .filter(r=>r.length>4)
+  .map(reg=>({reg,done:false}));
+}
+
+// Initial load — auto‑process
+window.onload=()=>{
+ regBox.value=PRESET_LIST;
+ items=buildList(PRESET_LIST);
+ render();
+};
+
+$('processBtn').onclick=()=>{
+ items=buildList(regBox.value);
  if(!items.length)return alert('Paste registrations first');
- items=items.map(reg=>({reg,done:false}));
  render();
 };
 
 $('clearBtn').onclick=()=>{regBox.value='';regBox.focus()};
 
-// Render list
 function render(){
  pendingList.innerHTML='';doneList.innerHTML='';
  items.forEach((item,i)=>{
@@ -151,72 +207,71 @@ function render(){
 
 function toggle(i){items[i].done=!items[i].done;render()}
 
-// --- SCANNER ---
+// LIVE SCANNER
 $('openScanBtn').onclick=async()=>{
+ if(!items.length)return alert('No list loaded');
  $('scanner').classList.add('open');
+ 
  try{
   stream=await navigator.mediaDevices.getUserMedia({
-   video:{facingMode:'environment',width:1280,height:720},audio:false
+   video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false
   });
   $('video').srcObject=stream;
   scanning=true;
-  $('scanStatus').textContent='Plate in the pink box → Scan';
+  scanLoopActive=true;
+  $('scanStatus').textContent='🔴 LIVE — point at plate…';
+  $('scanStatus').classList.add('live');
+  continuousScan();
  }catch(e){
   $('scanStatus').textContent='❌ Camera blocked — allow camera & use HTTPS';
  }
 };
 
 $('closeScan').onclick=()=>{
- scanning=false;
+ scanning=false;scanLoopActive=false;
  if(stream)stream.getTracks().forEach(t=>t.stop());
  stream=null;
  $('video').srcObject=null;
  $('scanner').classList.remove('open');
 };
 
-$('scanNow').onclick=async()=>{
- if(!scanning)return;
- $('scanStatus').textContent='Reading…';
-
- // Crop frame to scan area
+async function continuousScan(){
+ if(!scanLoopActive)return;
  const v=$('video'),c=$('canvas');
- if(!v.videoWidth)return;
- const w=v.videoWidth,h=v.videoHeight;
- const sx=Math.round(w*.07),sy=Math.round(h*.39),sw=Math.round(w*.86),sh=Math.round(h*.22);
- c.width=sw;c.height=sh;
- const ctx=c.getContext('2d');
- ctx.drawImage(v,sx,sy,sw,sh,0,0,sw,sh);
+ if(v.videoWidth){
+  const w=v.videoWidth,h=v.videoHeight;
+  const sx=Math.round(w*.07),sy=Math.round(h*.39),sw=Math.round(w*.86),sh=Math.round(h*.22);
+  c.width=sw;c.height=sh;
+  const ctx=c.getContext('2d');
+  ctx.drawImage(v,sx,sy,sw,sh,0,0,sw,sh);
 
- // OCR — FAST minimal config
- const result=await Tesseract.recognize(c,'eng',{
-  logger:()=>{},
-  tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-  tessedit_pageseg_mode:6
- });
+  try{
+   const result=await Tesseract.recognize(c,'eng',{
+    logger:()=>{},
+    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+    tessedit_pageseg_mode:6
+   });
 
- const found=clean(result.data.text);
- // Match against list
- const match=items.find(i=>found.includes(i.reg));
+   const found=clean(result.data.text);
+   const match=items.find(i=>!i.done && found.includes(i.reg));
 
- if(match && Date.now()-lastHit>2500){ // prevent double trigger
-  lastHit=Date.now();
-  beep();
-  $('scanStatus').textContent='✅ MATCH: '+match.reg;
-
-  // Highlight & scroll to it
-  document.querySelectorAll('.hit').forEach(e=>e.classList.remove('hit'));
-  const el=document.querySelector(`[data-reg="${match.reg}"]`);
-  if(el){
-   el.classList.add('hit');
-   el.scrollIntoView({behavior:'smooth',block:'center'});
-   setTimeout(()=>el.classList.remove('hit'),3000);
-  }
-
-  setTimeout(()=>$('closeScan').click(),1200); // auto-close scanner
- }else{
-  $('scanStatus').textContent=found.slice(0,12)||'No reg read — try again';
+   if(match && Date.now()-lastHit>2500){
+    lastHit=Date.now();
+    beep();
+    $('scanStatus').textContent='✅ FOUND: '+match.reg;
+    
+    document.querySelectorAll('.hit').forEach(e=>e.classList.remove('hit'));
+    const el=document.querySelector(`[data-reg="${match.reg}"]`);
+    if(el){
+     el.classList.add('hit');
+     el.scrollIntoView({behavior:'smooth',block:'center'});
+     setTimeout(()=>el.classList.remove('hit'),3000);
+    }
+   }
+  }catch(e){}
  }
-};
+ setTimeout(continuousScan, v.videoWidth ? 800 : 300);
+}
 </script>
 </body>
 </html>
