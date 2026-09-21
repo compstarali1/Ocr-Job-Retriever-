@@ -2,367 +2,224 @@
 <html lang="en-GB">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07090d">
-<title>Enfield Dotcom — Reg Matcher ✅</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fast Reg Checker — OCR & Match</title>
 <style>
-:root{
- --bg:#07090d;--card:#11151c;--line:#29313d;--text:#f5f7fa;--muted:#8f9aaa;
- --cyan:#00d9ff;--green:#16e38a;--amber:#ffb020;--red:#ff4055;--scan:#ff2d9a;
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
-body{background:radial-gradient(circle at 50% -10%,#15202b 0,#07090d 45%);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto}
-button,input,textarea{font:inherit}
-.header{position:relative;padding:17px 58px 16px 16px;border:1px solid #24303b;border-radius:16px;
- background:linear-gradient(145deg,#101923,#0a0d12);margin-bottom:12px}
-.header h1{font-size:1.08rem;color:var(--cyan);margin-bottom:3px}
-.top-reset{position:absolute;right:12px;top:12px;background:linear-gradient(145deg,#555e69,#303740);border:1px solid #66717d;color:#fff;border-radius:8px;padding:6px 9px;font-size:.65rem;font-weight:900;cursor:pointer}
-.panel{background:linear-gradient(145deg,#121820,#0e1218);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:12px}
-.panel-title{font-size:.86rem;color:#dce3ea;margin-bottom:9px;font-weight:700}
-textarea{width:100%;height:120px;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:10px;padding:11px;outline:none}
-.row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
-.btn{border:0;border-radius:10px;padding:11px 13px;color:white;font-weight:800;cursor:pointer;transition:opacity .2s}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.primary{background:linear-gradient(145deg,#00c8ed,#007d9b)}
-.scanbtn{background:linear-gradient(145deg,#ff39aa,#a90068);flex:1;min-width:170px}
-.clear{background:linear-gradient(145deg,#555e69,#303740)}
-.manual{background:linear-gradient(145deg,#16e38a,#00a86b)}
-.small{font-size:.76rem;color:var(--muted);margin-top:7px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
-.stat{background:#10151c;border:1px solid var(--line);border-radius:10px;text-align:center;padding:8px}
-.stat b{display:block;font-size:1.25rem}
-#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
-.search{width:100%;background:#0c1016;border:1px solid var(--line);color:#fff;border-radius:10px;padding:11px 13px;outline:none;margin-bottom:10px}
-.section-title{font-size:.86rem;padding:8px 3px;border-bottom:1px solid var(--line);margin-bottom:7px}
-.section-title.pending{color:var(--amber)}.section-title.done{color:var(--green)}
-.item{display:flex;align-items:center;gap:9px;background:linear-gradient(145deg,#141a22,#10151b);border:1px solid #242d38;
-border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom:7px;transition:.2s}
-.item.done{border-left-color:var(--green);opacity:.72}
-.item.scan-hit{animation:hit 2s ease;outline:4px solid var(--scan);background:#30152a;box-shadow:0 0 18px 4px #ff2d9a77}
-@keyframes hit{0%{transform:scale(1.03)}100%{transform:scale(1)}}
-.num{min-width:32px;text-align:center;background:#202832;border-radius:7px;padding:5px 3px;color:#aab4c0;font-size:.72rem}
-.tick{width:22px;height:22px;border:2px solid #5a6572;border-radius:6px;cursor:pointer;display:grid;place-items:center}
-.tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#00170d}
-.reg{font-size:1rem;font-weight:900;letter-spacing:.7px}
-.hidden{display:none!important}
-#scanner{display:none;position:fixed;inset:0;background:#020406eF;z-index:1000;align-items:center;justify-content:center;padding:15px}
-#scanner.open{display:flex}
-.scanbox{width:min(94vw,520px);background:#0c1118;border:1px solid #33404d;border-radius:18px;padding:16px}
-.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:4/3;margin-bottom:12px}
-#video{width:100%;height:100%;object-fit:cover;display:block}
-.overlay{position:absolute;left:5%;right:5%;top:38%;height:24%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px #0006}
-.scan-status{text-align:center;padding:10px 4px;min-height:60px;font-size:.8rem;line-height:1.4}
-.scan-status.success{color:var(--green)}.scan-status.error{color:var(--red)}.scan-status.loading{color:var(--amber)}
-.scanner-controls{display:flex;gap:8px;margin-top:10px}.scanner-controls button{flex:1}
-.close{background:linear-gradient(145deg,#555,#292e34)}
-.manual-wrap{margin-top:14px;padding-top:14px;border-top:1px solid #2a3442}
-.manual-input{width:100%;background:#080b10;border:1px solid #27303a;color:#fff;border-radius:8px;padding:12px;font-size:1.2rem;font-weight:700;letter-spacing:1px;text-align:center;margin:6px 0}
-.manual-input:focus{border-color:var(--green);box-shadow:0 0 0 2px #16e38a33}
-.read-preview{background:#0a0f14;border-radius:8px;padding:8px;margin:8px 0;font-family:monospace;font-size:.9rem;color:#ccc;word-break:break-all}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
+:root{--bg:#0a0b0f;--card:#141720;--accent:#4d90fe;--ok:#34d399;--warn:#fbbf24;--text:#e6e8f0;--muted:#888f9e;--border:#2a2f3f}
+body{background:var(--bg);color:var(--text);padding:16px;min-height:100vh}
+.container{max-width:900px;margin:0 auto}
+h1{font-size:22px;margin-bottom:16px;color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+label{display:block;font-weight:600;margin-bottom:8px;color:#ccc}
+textarea{width:100%;height:140px;background:#0f1118;border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-size:15px;line-height:1.5;resize:none;outline:none}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(77,144,254,.25)}
+.btn{padding:14px 24px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:.15s ease}
+.btn-primary{background:var(--accent);color:#fff;width:100%;margin:12px 0}
+.btn-primary:hover{background:#3a7de6}
+.btn-secondary{background:#252936;color:var(--text)}
+.btn-secondary:hover{background:#2d3242}
+.upload-box{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:.2s}
+.upload-box:hover{border-color:var(--accent);background:rgba(77,144,254,.05)}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.progress{height:6px;background:#1f222e;border-radius:3px;overflow:hidden;margin:12px 0;display:none}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:.15s}
+.results{margin-top:16px}
+.match{padding:10px 14px;border-radius:8px;margin:6px 0;background:rgba(52,211,153,.1);border-left:3px solid var(--ok)}
+.nomatch{padding:10px 14px;border-radius:8px;margin:6px 0;background:rgba(251,191,36,.08);border-left:3px solid var(--warn);opacity:.85}
+.found-count{font-size:18px;font-weight:700;margin-bottom:10px}
+.raw-toggle{margin-top:12px;color:var(--accent);cursor:pointer;font-size:14px}
+.raw-text{margin-top:10px;padding:12px;background:#0f1118;border-radius:8px;font-family:monospace;font-size:12px;color:#999;white-space:pre-wrap;max-height:150px;overflow:auto;display:none}
+.stats{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.stat{padding:10px 16px;background:#1a1e2b;border-radius:10px}
+.stat b{font-size:20px;display:block}
 </style>
+<!-- Lightweight OCR — local only, fast -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
+<div class="container">
 
-<header class="header">
- <button id="resetBtn" class="top-reset" type="button">↻ RESET</button>
- <h1>🚐 Enfield Dotcom — Reg Matcher</h1>
- <p>✅ Type = Instant • Camera = Helper</p>
-</header>
+<h1>🔍 Fast Reg Checker</h1>
 
-<section class="panel">
- <div class="panel-title">📋 JOB REGISTRATIONS</div>
- <textarea id="rawText" placeholder="Paste list here…&#10;NX22URV - DONE&#10;NX22ULU"></textarea>
- <div class="row">
-  <button class="btn primary" id="processBtn">⚡ PROCESS LIST</button>
-  <button class="btn clear" id="clearBtn">Clear</button>
-  <button class="btn scanbtn" id="openScannerBtn">📷 CAMERA SCAN</button>
- </div>
- <div class="small">💡 Fastest: Type it directly — always instant ✅</div>
-</section>
+<div class="card">
+<label>📋 Your Registration List (paste here — one per line)</label>
+<textarea id="regList" placeholder="NX22ULU&#10;NX22ULV&#10;NX72VGN&#10;...">
+</textarea>
+<div class="hint">Paste your full list — one registration per line. Click "Scan Image" then upload your screenshot/photo.</div>
+</div>
+
+<div class="card">
+<label>📷 Scan Image for Registrations</label>
+<div class="upload-box" id="uploadArea" onclick="document.getElementById('imgInput').click()">
+Click to select image<br>
+<span class="hint">Screenshot or photo — works instantly</span>
+</div>
+<input type="file" id="imgInput" accept="image/*" style="display:none">
+<button class="btn btn-primary" id="scanBtn" onclick="startScan()">🔍 Scan & Match</button>
+<button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="clearAll()">🗑️ Clear Results</button>
+<div class="progress" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+</div>
 
 <div class="stats">
- <div class="stat"><b id="pendingCount">0</b><span>PENDING</span></div>
- <div class="stat"><b id="doneCount">0</b><span>DONE</span></div>
- <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
+<div class="stat">Total in list <b id="totalList">0</b></div>
+<div class="stat">Found in image <b id="foundCount">0</b></div>
+<div class="stat">Not found <b id="missingCount">0</b></div>
 </div>
 
-<input id="search" class="search" placeholder="🔍 Search registration — instant!">
+<div class="results" id="resultsArea"></div>
+<div class="raw-toggle" onclick="toggleRaw()">📄 Toggle Raw OCR Text</div>
+<div class="raw-text" id="rawArea"></div>
 
-<section>
- <div class="section-title pending">⏳ TO DO</div>
- <div id="pendingList"></div>
-</section>
-<section>
- <div class="section-title done">✅ COMPLETED</div>
- <div id="doneList"></div>
-</section>
-
-<div id="scanner">
- <div class="scanbox">
-  <div class="panel-title">📷 AIM AT PLATE</div>
-  <div class="video-wrap">
-   <video id="video" autoplay muted playsinline></video>
-   <div class="overlay"></div>
-  </div>
-  <div class="scan-status" id="scanStatus">Camera starting…</div>
-  <div id="readPreview" class="read-preview hidden"></div>
-  <div class="scanner-controls">
-   <button class="btn close" id="closeScanner">✕ CLOSE</button>
-   <button class="btn scanbtn" id="scanNow">📸 TAKE PHOTO</button>
-  </div>
-  
-  <div class="manual-wrap">
-   <div class="panel-title" style="margin-bottom:4px">⚡ ALWAYS WORKS — JUST TYPE IT</div>
-   <input type="text" id="manualReg" class="manual-input" placeholder="e.g. NX22ULU" maxlength="8">
-   <button class="btn manual" id="manualMatchBtn" style="width:100%">✅ FIND & MATCH — INSTANT</button>
-  </div>
- </div>
 </div>
-<canvas id="ocrCanvas" style="display:none"></canvas>
 
 <script>
-const KEY='enfield-simple-v2';
-let items=[];
-let stream=null;
-const $=id=>document.getElementById(id);
+let listRegs = [];
+let ocrText = "";
 
-// ─── UTILS ───
-function norm(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
-function validReg(s){return /^[A-Z]{2}\d{2}[A-Z0-9]{3}$/.test(norm(s));}
-function beep(){
- try{const c=new (window.AudioContext||webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();
- o.frequency.value=880;g.gain.setValueAtTime(.001,c.currentTime);g.gain.linearRampToValueAtTime(.3,c.currentTime+.05);
- g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.3);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}
-}
+// Update count as user types/pastes
+document.getElementById("regList").addEventListener("input", ()=>{
+  listRegs = document.getElementById("regList").value.toUpperCase()
+    .split("\n")
+    .map(r=>r.trim().replace(/\s+/g,''))
+    .filter(r=>r.length>3);
+  document.getElementById("totalList").textContent = listRegs.length;
+});
 
-// ─── PARSE & SAVE ───
-function parse(text){
- const out=[], seen=new Set();
- const re=/\b([A-Z]{2}\s*\d{2}\s*[A-Z0-9]{3})\b/gi;
- let m;
- while((m=re.exec(text))){
-   const reg=norm(m[1]);
-   if(validReg(reg)&&!seen.has(reg)){
-     out.push({reg,done:/-?\s*DONE\b/i.test(text.slice(Math.max(0,m.index-20),m.index+30))});
-     seen.add(reg);
-   }
- }
- return out;
-}
-function save(){localStorage.setItem(KEY,JSON.stringify({items,raw:$('rawText').value}));}
-function load(){
- try{
-  const d=JSON.parse(localStorage.getItem(KEY)||'{}');
-  if(d?.items?.length){items=d.items;$('rawText').value=d.raw||'';render();}
- }catch(e){}
-}
-function render(){
- $('pendingList').innerHTML='';$('doneList').innerHTML='';
- items.forEach((x,i)=>{
-   const el=document.createElement('div');
-   el.className='item '+(x.done?'done':'pending');
-   el.dataset.reg=x.reg;
-   el.innerHTML=`<div class="num">${i+1}</div><div class="tick ${x.done?'checked':''}"></div><div><div class="reg">${x.reg}</div></div>`;
-   el.querySelector('.tick').onclick=()=>{items[i].done=!items[i].done;save();render();};
-   (x.done?$('doneList'):$('pendingList')).appendChild(el);
- });
- $('pendingCount').textContent=items.filter(x=>!x.done).length;
- $('doneCount').textContent=items.filter(x=>x.done).length;
- $('totalCount').textContent=items.length;
- filter();
-}
-function filter(){
- const q=norm($('search').value);
- document.querySelectorAll('.item').forEach(el=>el.classList.toggle('hidden',q&&!norm(el.dataset.reg).includes(q)));
-}
+// Trigger scan when file selected + button clicked
+let selectedFile = null;
+document.getElementById("imgInput").addEventListener("change",e=>{
+  selectedFile = e.target.files[0];
+  if(selectedFile){
+    document.getElementById("uploadArea").innerHTML = `✅ ${selectedFile.name} — ready to scan`;
+  }
+});
 
-// ─── MATCH LOGIC ───
-function matchAndHighlight(regInput){
- const reg=norm(regInput);
- if(!validReg(reg)){alert(`⚠️ Not valid format: ${reg}`);return;}
- 
- const match=items.find(x=>norm(x.reg)===reg);
- if(!match){alert(`❌ ${reg} — NOT FOUND`);return;}
- 
- beep();
- alert(`✅ MATCH: ${match.reg}`);
- stopCamera();
- 
- document.querySelectorAll('.scan-hit').forEach(x=>x.classList.remove('scan-hit'));
- const el=document.querySelector(`.item[data-reg="${match.reg}"]`);
- if(el){
-   el.classList.add('scan-hit');
-   el.scrollIntoView({behavior:'smooth',block:'center'});
-   setTimeout(()=>el.classList.remove('scan-hit'),3500);
- }
-}
+async function startScan(){
+  if(!selectedFile) return alert("Select an image first");
+  if(listRegs.length===0) return alert("Paste your registration list first");
 
-// ─── MANUAL INPUT — ALWAYS WORKS ───
-$('manualMatchBtn').onclick=()=>{
- const val=$('manualReg').value.trim();
- if(!val){alert('Type registration first');return;}
- matchAndHighlight(val);
- $('manualReg').value='';
-};
-$('manualReg').onkeydown=e=>e.key==='Enter'&&$('manualMatchBtn').click();
+  ocrText = "";
+  document.getElementById("progressWrap").style.display = "block";
+  document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("resultsArea").innerHTML = "";
+  document.getElementById("rawArea").style.display = "none";
 
-// ─── CAMERA SCAN ───
-function stopCamera(){
- if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
- $('video').srcObject=null;
- $('scanner').classList.remove('open');
- $('readPreview').classList.add('hidden');
-}
-
-$('openScannerBtn').onclick=async()=>{
- $('scanner').classList.add('open');
- $('readPreview').classList.add('hidden');
- try{
-  stream=await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},
-    audio:false
+  // Fast OCR — minimal config
+  const result = await Tesseract.recognize(selectedFile, "eng", {
+    logger:m=>{
+      if(m.status==='recognizing text'){
+        document.getElementById("progressBar").style.width = Math.round(m.progress*100)+"%";
+      }
+    },
+    tessedit_pageseg_mode:6, // Assume single uniform block — faster
+    tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 " // Only what we need
   });
-  $('video').srcObject=stream;
-  $('scanStatus').textContent='✅ Camera ready — hold plate still & bright → TAP PHOTO';
-  $('scanStatus').className='scan-status success';
- }catch(e){
-  $('scanStatus').textContent='❌ Camera blocked — TYPE IT below';
-  $('scanStatus').className='scan-status error';
- }
-};
-$('closeScanner').onclick=stopCamera;
 
-// Enhanced image preprocessing
-function enhanceImage(canvas,ctx,w,h){
- const imgData=ctx.getImageData(0,0,w,h);
- const data=imgData.data;
- // Increase contrast + grayscale
- for(let i=0;i<data.length;i+=4){
-  const gray=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
-  // Boost contrast
-  const boosted=gray<128?gray*0.7:Math.min(255,gray*1.3);
-  data[i]=data[i+1]=data[i+2]=boosted;
- }
- ctx.putImageData(imgData,0,0);
-}
+  ocrText = result.data.text.toUpperCase();
+  document.getElementById("rawArea").textContent = ocrText;
 
-// Try multiple patterns to extract registration
-function extractRegistration(text){
- const t=text.toUpperCase().replace(/\s+/g,'');
- 
- // Pattern 1: Standard UK — AA00AAA
- let m=t.match(/([A-Z]{2}\d{2}[A-Z0-9]{3})/);
- if(m)return m[1];
- 
- // Pattern 2: Fix common OCR mistakes then retry
- const fixed=t
-  .replace(/[0O]{2,}/g,'O')
-  .replace(/[1I]{2,}/g,'I')
-  .replace(/0/g,'O')
-  .replace(/1/g,'I')
-  .replace(/8/g,'B')
-  .replace(/5/g,'S')
-  .replace(/2/g,'Z');
- 
- m=fixed.match(/([A-Z]{2}\d{2}[A-Z0-9]{3})/);
- if(m)return m[1];
- 
- // Pattern 3: Relaxed — find 7-char block with mix of letters/numbers
- const chunks=t.match(/[A-Z0-9]{6,9}/g)||[];
- for(const c of chunks){
-  if(/^[A-Z]{1,3}\d{1,4}[A-Z0-9]{2,4}$/.test(c)){
-   const padded=c.length===7?c:'NX'+c.slice(-5);
-   if(validReg(padded))return padded;
-  }
- }
- 
- return null;
-}
-
-$('scanNow').onclick=async()=>{
- const v=$('video'),c=$('ocrCanvas');
- if(!v.videoWidth){alert('Camera not ready');return;}
- 
- $('scanStatus').textContent='📸 Capturing…';
- $('scanStatus').className='scan-status loading';
- 
- // Capture full frame first
- const w=v.videoWidth,h=v.videoHeight;
- // Crop to centre where plate should be
- const sx=Math.round(w*.05), sy=Math.round(h*.35), sw=Math.round(w*.9), sh=Math.round(h*.3);
- c.width=600;c.height=200;
- const ctx=c.getContext('2d');
- 
- // Draw + enhance
- ctx.drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
- enhanceImage(c,ctx,c.width,c.height);
- 
- // Show preview of what's being sent
- const preview=c.toDataURL('image/jpeg',0.9);
- 
- try{
-  const formData=new FormData();
-  formData.append('base64Image',preview);
-  formData.append('language','eng');
-  formData.append('isOverlayRequired','false');
-  formData.append('scale','true');
-  formData.append('detectOrientation','true');
-  formData.append('OCREngine','2'); // Better engine
+  // Extract clean regs from OCR — remove spaces for matching
+  const foundClean = ocrText.replace(/\s+/g,' ').trim();
   
-  const res=await fetch('https://api.ocr.space/parse/image',{
-    method:'POST',
-    body:formData,
-    mode:'cors'
+  // Match — FAST direct check
+  let found = [], missing = [];
+  listRegs.forEach(reg=>{
+    // Check if exact reg appears in OCR text (spaces removed)
+    if(ocrText.replace(/\s+/g,'').includes(reg)){
+      found.push(reg);
+    }else{
+      missing.push(reg);
+    }
   });
-  
-  const data=await res.json();
-  
-  let rawText='';
-  if(!data.IsErroredOnProcessing&&data.ParsedResults?.length>0){
-    rawText=data.ParsedResults[0].ParsedText||'';
-  }
-  
-  // Show what was read
-  $('readPreview').classList.remove('hidden');
-  $('readPreview').innerHTML=`<strong>Read:</strong> ${rawText.trim()||'(nothing detected)'}`;
-  
-  if(!rawText.trim()){
-    $('scanStatus').textContent='⚠️ No text seen — brighten & hold still';
-    $('scanStatus').className='scan-status.error';
-    return;
-  }
-  
-  const found=extractRegistration(rawText);
-  
-  if(found){
-    $('scanStatus').textContent=`✅ Found: ${found}`;
-    $('scanStatus').className='scan-status.success';
-    // Auto-match after short delay
-    setTimeout(()=>matchAndHighlight(found),600);
-  }else{
-    $('scanStatus').textContent='⚠️ Not recognised — type it below';
-    $('scanStatus').className='scan-status.error';
-  }
-  
- }catch(err){
-  $('scanStatus').textContent='⚠️ Scan failed — TYPE IT below';
-  $('scanStatus').className='scan-status.error';
- }
-};
 
-// ─── BUTTONS ───
-$('processBtn').onclick=()=>{
- const p=parse($('rawText').value);
- if(!p.length){alert('No registrations found. Format: NX22ULU');return;}
- items=p;save();render();
-};
-$('clearBtn').onclick=()=>{$('rawText').value='';$('rawText').focus();};
-$('search').oninput=filter;
-$('resetBtn').onclick=()=>{
- if(confirm('Reset everything?')){localStorage.removeItem(KEY);items=[];$('rawText').value='';$('search').value='';render();}
-};
+  // Display
+  let html = "";
+  if(found.length>0){
+    html += `<div class="found-count" style="color:var(--ok)">✅ Found: ${found.length}</div>`;
+    found.forEach(r=>html += `<div class="match">${r}</div>`);
+  }
+  if(missing.length>0){
+    html += `<div class="found-count" style="color:var(--warn);margin-top:16px;">⚠️ Not Found: ${missing.length}</div>`;
+    missing.forEach(r=>html += `<div class="nomatch">${r}</div>`);
+  }
 
-load();
+  document.getElementById("resultsArea").innerHTML = html;
+  document.getElementById("foundCount").textContent = found.length;
+  document.getElementById("missingCount").textContent = missing.length;
+  document.getElementById("progressWrap").style.display = "none";
+  selectedFile = null;
+  document.getElementById("uploadArea").innerHTML = "✅ Done — click to select another image";
+  document.getElementById("imgInput").value = "";
+}
+
+function toggleRaw(){
+  const el = document.getElementById("rawArea");
+  el.style.display = el.style.display==='block' ? 'none' : 'block';
+}
+
+function clearAll(){
+  document.getElementById("resultsArea").innerHTML = "";
+  document.getElementById("rawArea").style.display = "none";
+  document.getElementById("foundCount").textContent = "0";
+  document.getElementById("missingCount").textContent = "0";
+  selectedFile = null;
+  document.getElementById("uploadArea").innerHTML = "Click to select image<br><span class='hint'>Screenshot or photo — works instantly</span>";
+  document.getElementById("imgInput").value = "";
+}
+
+// Auto-load example list
+window.onload = ()=>{
+  document.getElementById("regList").value = `NX22ULU
+NX22ULV
+NX22UMD
+NX22UML
+NX22UMO
+NX22UMR
+NX22UMY
+NX22UMZ
+NX22UNB
+NX22UNF
+NX22UNK
+NX22UNP
+NX72VGN
+NX72VEP
+NX72VFT
+NX72VGA
+NX72VGC
+NX72VGJ
+NX72VGL
+NX72VGM
+NX72VFO
+NX72VFV
+NX72VGF
+NX72VGO
+NX72VGR
+NX72VGY
+NX72VLL
+NX72VFL
+NX72VFN
+NX72VFP
+NX72VGD
+NX72VGG
+NX72VGK
+NX72VGP
+NX72VGT
+NX72VGU
+NX72VGV
+NX72VLR
+NX72VLW
+NX72VLY
+NX72VME
+NX72VKS
+NX72VLU
+NX72VMG
+NX72VLC
+NX72VLT
+NX72VLO`;
+  // Trigger count
+  document.getElementById("regList").dispatchEvent(new Event('input'));
+};
 </script>
 </body>
 </html>
