@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Reg Scanner — No False Alerts</title>
+<title>Reg Scanner — With 4-Digit Entry</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
-:root{--bg:#000;--card:#111;--line:#333;--text:#fff;--muted:#aaa;--cyan:#0ff;--green:#0f8;--amber:#fa0;--scan:#f29;--found-top:#0cf;--red:#f44}
+:root{--bg:#000;--card:#111;--line:#333;--text:#fff;--muted:#aaa;--cyan:#0ff;--green:#0f8;--amber:#fa0;--scan:#f29;--found-top:#0cf;--red:#f44;--purple:#a5f}
 *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
 html,body{background:#000;color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto;padding-bottom:180px}
 h1{font-size:1.1rem;color:var(--cyan);margin-bottom:4px}
@@ -25,21 +25,27 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 .stat{background:#1a1a1a;border:1px solid #333;border-radius:10px;text-align:center;padding:10px}
 .stat b{display:block;font-size:1.3rem}.stat span{font-size:.67rem;color:var(--muted)}
 #foundCount{color:var(--found-top)}#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
-.list-title{font-size:.86rem;padding:8px 4px 6px;border-bottom:1px solid #333;margin:10px 0 5px}
-.pending{color:var(--amber)}.done{color:var(--green)}
-.found-section{border-bottom:1px dashed #246;margin-bottom:10px;padding-bottom:6px}
-.found-title{color:var(--found-top);font-size:.8rem;font-weight:bold;margin:4px 0}
-.item{display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #333;border-left:4px solid var(--amber);border-radius:11px;padding:11px;margin-bottom:7px}
+.list-title{font-size:.86rem;padding:10px 6px 6px;border-bottom:1px solid #333;margin:14px 0 6px;font-weight:bold;display:flex;justify-content:space-between;align-items:center}
+.title-found{color:var(--found-top);background:#0f2533;padding:4px 8px;border-radius:6px}
+.title-pending{color:var(--amber)}
+.title-done{color:var(--green)}
+.item{display:flex;align-items:center;gap:8px;background:#1a1a1a;border:1px solid #333;border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom:7px;transition:.3s ease;flex-wrap:wrap}
 .item.found-top{border-left-color:var(--found-top);background:#0f2533;box-shadow:0 0 14px 3px #0cf3}
 .item.done{border-left-color:var(--green);opacity:.7}
-.reg{font-size:1rem;font-weight:900;letter-spacing:.7px}
-.tick{width:22px;height:22px;border:2px solid #555;border-radius:6px;cursor:pointer;display:grid;place-items:center}
+.reg{font-size:1rem;font-weight:900;letter-spacing:.7px;min-width:110px}
+.section-tag{font-size:.65rem;padding:2px 6px;border-radius:4px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px}
+.sec-found{background:#0cf3;color:#cff}
+.sec-pending{background:#fa03;color:#ffd}
+.sec-done{background:#0f83;color:#dfd}
+.custom-num{width:70px;background:#000;border:1px solid #555;color:#fff;border-radius:6px;padding:6px 8px;text-align:center;font-size:.9rem;font-weight:bold;outline:none}
+.custom-num:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #0ff4}
+.tick{width:22px;height:22px;border:2px solid #555;border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
 .tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
 .notify{position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:10px;font-weight:bold;z-index:9999;opacity:0;transition:opacity .2s ease;pointer-events:none}
 .notify.show{opacity:1}
 .notify.found{background:#163a2e;border:1px solid var(--green);color:#9efc9e}
 .notify.unknown{background:#3a1e1e;border:1px solid var(--red);color:#fbb}
-.notify.duplicate{background:#2f1f44;border:1px solid #a5f;color:#dcf}
+.notify.duplicate{background:#2f1f44;border:1px solid var(--purple);color:#dcf}
 #scanner{position:fixed;bottom:0;left:0;right:0;background:#000e;z-index:998;border-top:1px solid #333;padding:12px 15px}
 .scanbox{max-width:540px;margin:0 auto}
 .video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:8px 0}
@@ -56,8 +62,8 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
 <body>
 
 <div id="notify" class="notify"></div>
-<h1>🚐 Reg Scanner — No False Alerts</h1>
-<p>✅ Only alerts when confirmed plate found</p>
+<h1>🚐 Reg Scanner — With 4-Digit Ref</h1>
+<p>✅ Type your 4-digit number in the box next to each reg • Auto-saved</p>
 
 <div class="panel">
  <textarea id="regBox"></textarea>
@@ -75,12 +81,16 @@ textarea{width:100%;height:130px;background:#0a0a0a;border:1px solid #333;color:
  <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
 </div>
 
-<div id="foundSection" class="found-section" style="display:none">
- <div class="found-title">🔵 FOUND — READY</div>
+<div id="foundSection" style="display:none">
+ <div class="list-title title-found">🔵 FOUND — READY</div>
  <div id="foundList"></div>
 </div>
-<div class="list-title pending">⏳ PENDING</div><div id="pendingList"></div>
-<div class="list-title done">✅ COMPLETED</div><div id="doneList"></div>
+
+<div class="list-title title-pending">⏳ PENDING</div>
+<div id="pendingList"></div>
+
+<div class="list-title title-done">✅ COMPLETED</div>
+<div id="doneList"></div>
 
 <div id="scanner" style="display:none">
  <div class="scanbox">
@@ -149,7 +159,6 @@ NX72VLO`;
 
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function looksLikePlate(s){
- // UK plate format check — min 6 chars, mix letters+numbers
  return s.length>=6 && s.length<=8 && /[A-Z]/.test(s) && /[0-9]/.test(s);
 }
 function showNotify(msg,type='info'){$('notify').className='notify show '+type;$('notify').textContent=msg;setTimeout(()=>$('notify').classList.remove('show'),1500)}
@@ -182,18 +191,97 @@ async function toggleFlash(){
  }
 }
 
-// Data
-function buildList(t){return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({reg:r,done:false,found:false}))}
-function saveData(){localStorage.setItem(SAVE_KEY,JSON.stringify({listText:$('regBox').value,items}))}
-function loadData(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d?.items?.length){items=d.items;$('regBox').value=d.listText;return true}}catch(e){}return false}
-function render(){
- const f=items.filter(i=>i.found&&!i.done),p=items.filter(i=>!i.found&&!i.done),d=items.filter(i=>i.done);
- $('foundSection').style.display=f.length?'block':'none';
- $('foundList').innerHTML=f.map(i=>`<div class="item found-top"><div class="tick" onclick="markDone(${items.indexOf(i)})"></div><div class="reg">${i.reg}</div></div>`).join('');
- $('pendingList').innerHTML=p.map(i=>`<div class="item"><div class="tick" onclick="markDone(${items.indexOf(i)})"></div><div class="reg">${i.reg}</div></div>`).join('');
- $('doneList').innerHTML=d.map(i=>`<div class="item done"><div class="tick checked" onclick="unmark(${items.indexOf(i)})"></div><div class="reg">${i.reg}</div></div>`).join('');
- $('foundCount').textContent=f.length;$('pendingCount').textContent=p.length;$('doneCount').textContent=d.length;$('totalCount').textContent=items.length;
+// Data structure with custom number field
+function buildList(t){
+ return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({
+  reg:r,
+  done:false,
+  found:false,
+  customNum:'' // stores your 4-digit number
+ }));
 }
+function saveData(){
+ localStorage.setItem(SAVE_KEY,JSON.stringify({
+  listText:$('regBox').value,
+  items:items
+ }));
+}
+function loadData(){
+ try{
+  const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
+  if(d?.items?.length){
+   items=d.items;
+   $('regBox').value=d.listText;
+   return true;
+  }
+ }catch(e){}
+ return false;
+}
+
+// Update custom number
+function updateCustomNum(index,value){
+ items[index].customNum=value.replace(/[^0-9]/g,'').slice(0,4); // only numbers, max 4 digits
+ saveData();
+}
+
+function render(){
+ const f=items.filter(i=>i.found&&!i.done);
+ const p=items.filter(i=>!i.found&&!i.done);
+ const d=items.filter(i=>i.done);
+ 
+ $('foundSection').style.display=f.length?'block':'none';
+ 
+ // Render FOUND items
+ $('foundList').innerHTML=f.map((item,idx)=>{
+   const realIndex=items.indexOf(item);
+   return `
+   <div class="item found-top">
+     <div class="tick" onclick="markDone(${realIndex})"></div>
+     <span class="reg">${item.reg}</span>
+     <span class="section-tag sec-found">FOUND</span>
+     <input type="text" class="custom-num" placeholder="0000" 
+       value="${item.customNum}" 
+       maxlength="4" inputmode="numeric"
+       oninput="updateCustomNum(${realIndex}, this.value)">
+   </div>`;
+ }).join('');
+ 
+ // Render PENDING items
+ $('pendingList').innerHTML=p.map((item,idx)=>{
+   const realIndex=items.indexOf(item);
+   return `
+   <div class="item">
+     <div class="tick" onclick="markDone(${realIndex})"></div>
+     <span class="reg">${item.reg}</span>
+     <span class="section-tag sec-pending">PENDING</span>
+     <input type="text" class="custom-num" placeholder="0000" 
+       value="${item.customNum}" 
+       maxlength="4" inputmode="numeric"
+       oninput="updateCustomNum(${realIndex}, this.value)">
+   </div>`;
+ }).join('');
+ 
+ // Render DONE items
+ $('doneList').innerHTML=d.map((item,idx)=>{
+   const realIndex=items.indexOf(item);
+   return `
+   <div class="item done">
+     <div class="tick checked" onclick="unmark(${realIndex})"></div>
+     <span class="reg">${item.reg}</span>
+     <span class="section-tag sec-done">DONE</span>
+     <input type="text" class="custom-num" placeholder="0000" 
+       value="${item.customNum}" 
+       maxlength="4" inputmode="numeric"
+       oninput="updateCustomNum(${realIndex}, this.value)">
+   </div>`;
+ }).join('');
+ 
+ $('foundCount').textContent=f.length;
+ $('pendingCount').textContent=p.length;
+ $('doneCount').textContent=d.length;
+ $('totalCount').textContent=items.length;
+}
+
 function markDone(i){items[i].done=true;items[i].found=false;saveData();render()}
 function unmark(i){items[i].done=false;saveData();render()}
 
@@ -209,6 +297,7 @@ $('openScanBtn').onclick=async()=>{
   torchOn=false;scanLoop();
  }catch(e){$('scanStatus').textContent='❌ Camera blocked — Allow in Settings'}
 };
+
 $('closeScan').onclick=async()=>{
  if(torchOn)await setFlashlight(false);
  if(stream)stream.getTracks().forEach(t=>t.stop());
@@ -227,10 +316,9 @@ async function scanLoop(){
    const r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:6});
    const found=clean(r.data.text);
    
-   // ✅ ONLY process if it actually looks like a plate
    if(!looksLikePlate(found)){
      setTimeout(scanLoop,800);
-     return; // SILENT — no sound, no notification
+     return;
    }
    
    const match=items.find(i=>found.includes(i.reg));
@@ -239,7 +327,7 @@ async function scanLoop(){
     if(!match.found && !match.done && Date.now()-lastHit>2500){
       lastHit=Date.now();match.found=true;
       soundFound();showNotify('✅ FOUND: '+match.reg,'found');
-      $('scanStatus').textContent='✅ FOUND: '+match.reg;
+      $('scanStatus').textContent='✅ FOUND: '+match.reg+' — Enter your 4-digit number';
       saveData();render();
     }else if((match.found||match.done)&&Date.now()-lastHit>2500){
       lastHit=Date.now();
@@ -247,7 +335,6 @@ async function scanLoop(){
       $('scanStatus').textContent='🔄 Already processed';
     }
    }else{
-    // ✅ UNKNOWN — ONLY triggers if valid plate format AND not in list
     if(Date.now()-lastHit>2500){
       lastHit=Date.now();
       soundUnknown();showNotify('❌ UNKNOWN REG: '+found,'unknown');
