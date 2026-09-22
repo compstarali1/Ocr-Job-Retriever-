@@ -7,155 +7,295 @@
 <title>Hyde Park Corner — Job Planner</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
-:root{--bg:#000;--card:#111;--line:#333;--text:#fff;--muted:#aaa;--cyan:#0ff;--green:#0f8;--amber:#fa0;--scan:#f29;--found-top:#0cf;--red:#f44;--purple:#a5f;--theme-icon:#888}
-[data-theme="light"]{--bg:#f5f5f5;--card:#fff;--line:#ddd;--text:#111;--muted:#666;--cyan:#08f;--green:#0a6;--amber:#c80;--scan:#e25;--found-top:#08c;--red:#c33;--purple:#84f;--theme-icon:#555}
-*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif}
-html,body{background:var(--bg);color:var(--text);min-height:100vh;padding:12px;max-width:760px;margin:auto;padding-bottom:180px;transition:background .3s,color .3s}
-.header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-h1.title-main{font-size:1.5rem;font-weight:900;letter-spacing:1px;color:var(--cyan);margin:0;white-space:nowrap}
-.theme-toggle{background:transparent;border:none;font-size:1.3rem;cursor:pointer;padding:4px 8px;color:var(--theme-icon);transition:transform .2s}
-.theme-toggle:hover{transform:scale(1.15)}
-p{font-size:.76rem;color:var(--muted);margin-bottom:16px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-textarea{width:100%;height:130px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px;outline:none;font-size:.86rem;resize:none}
-.row{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;align-items:center}
-.btn{border:0;border-radius:10px;padding:10px 4px;color:white;font-weight:700;cursor:pointer;flex:1;min-width:70px;font-size:.75rem;transition:all .2s;white-space:nowrap}
-.scanbtn{background:linear-gradient(145deg,#f3a,#906)}
-.process{background:linear-gradient(145deg,#0ce,#079)}
-.clear{background:linear-gradient(145deg,#555,#333)}
-.exportbtn{background:linear-gradient(145deg,#4a6,#284)}
-.savebtn{background:linear-gradient(145deg,#26a,#148)}
-.restorebtn{background:linear-gradient(145deg,#862,#641)}
-.torch-idle{background:#ffcc00;color:#000;font-weight:bold}
-.torch-active{background:#ffd700;color:#000;font-weight:bold;box-shadow:0 0 20px #ffd700}
-.torch-disabled{background:#555;color:#999;cursor:not-allowed}
-/* Floating Scan Button */
-.floating-scan{position:fixed;bottom:24px;right:20px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,#f44,#c00);border:none;color:#fff;font-size:1.4rem;cursor:pointer;z-index:997;box-shadow:0 4px 14px #f445,inset 0 -3px 8px #0003;display:grid;place-items:center;transition:transform .2s,box-shadow .2s}
-.floating-scan:hover{transform:scale(1.08);box-shadow:0 6px 20px #f448}
-.floating-scan:active{transform:scale(.95)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;text-align:center;padding:10px}
-.stat b{display:block;font-size:1.3rem}.stat span{font-size:.67rem;color:var(--muted)}
-#foundCount{color:var(--found-top)}#pendingCount{color:var(--amber)}#doneCount{color:var(--green)}#totalCount{color:var(--cyan)}
-.list-title{font-size:.86rem;padding:10px 6px 6px;border-bottom:1px solid var(--line);margin:14px 0 6px;font-weight:bold}
-.title-found{color:var(--found-top);background:var(--bg);padding:4px 8px;border-radius:6px}
-.title-pending{color:var(--amber)}
-.title-done{color:var(--green)}
-.item{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:11px;padding:10px;margin-bottom:7px;flex-wrap:wrap}
-.item.found-top{border-left-color:var(--found-top);background:rgba(0,204,255,.08);box-shadow:0 0 14px 3px rgba(0,204,255,.15)}
-.item.done{border-left-color:var(--green);opacity:.7}
-.reg{font-size:1rem;font-weight:900;letter-spacing:.7px;min-width:110px}
-.section-tag{font-size:.65rem;padding:2px 6px;border-radius:4px;font-weight:bold;text-transform:uppercase;white-space:nowrap}
-.sec-found{background:rgba(0,204,255,.15);color:var(--found-top)}
-.sec-pending{background:rgba(255,170,0,.15);color:var(--amber)}
-.sec-done{background:rgba(0,255,102,.15);color:var(--green)}
-.custom-num{width:65px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:5px 6px;text-align:center;font-size:.85rem;font-weight:bold;outline:none}
-.tick{width:22px;height:22px;border:2px solid var(--line);border-radius:6px;cursor:pointer;display:grid;place-items:center;flex:none}
-.tick.checked{background:var(--green);border-color:var(--green)}.tick.checked:after{content:"✓";font-weight:900;color:#000}
-.notify{position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:10px;font-weight:bold;z-index:9999;opacity:0;transition:opacity .2s ease;pointer-events:none}
+:root{
+  --bg:#050505;--surface:#121212;--card:#1a1a1a;--card-elevated:#242424;
+  --border:#2a2a2a;--text:#ffffff;--text-secondary:#b0b0b0;
+  --cyan:#00ccff;--green:#00e676;--amber:#ffab00;--red:#ff5252;--purple:#ba68c8;
+  --found:#00ccff;--pending:#ffab00;--done:#00e676;
+  --shadow-sm:0 2px 6px rgba(0,0,0,.35);--shadow-md:0 4px 12px rgba(0,0,0,.45);--shadow-glow:0 0 0 rgba(0,204,255,0);
+  --scan-grad:linear-gradient(145deg,#ff4d4d,#cc0000);
+  --theme-icon:#777
+}
+[data-theme="light"]{
+  --bg:#f8f9fa;--surface:#ffffff;--card:#ffffff;--card-elevated:#f0f0f0;
+  --border:#e0e0e0;--text:#1a1a1a;--text-secondary:#666666;
+  --cyan:#0091ea;--green:#00c853;--amber:#ff8f00;--red:#e53935;--purple:#9c27b0;
+  --found:#0091ea;--pending:#f57c00;--done:#2e7d32;
+  --shadow-sm:0 2px 6px rgba(0,0,0,.08);--shadow-md:0 4px 12px rgba(0,0,0,.12);
+  --scan-grad:linear-gradient(145deg,#ff5252,#c62828);
+  --theme-icon:#555
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+html,body{
+  background:var(--bg);color:var(--text);min-height:100vh;
+  padding:16px;max-width:780px;margin:0 auto;padding-bottom:100px;
+  transition:background .25s ease,color .25s ease
+}
+
+/* ─── HEADER ─── */
+.header-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+h1{font-size:1.3rem;font-weight:800;letter-spacing:.5px;color:var(--cyan)}
+.theme-toggle{background:transparent;border:none;font-size:1.2rem;cursor:pointer;padding:6px 8px;color:var(--theme-icon);border-radius:8px;transition:all .2s}
+.theme-toggle:hover{background:var(--card-elevated);transform:scale(1.1)}
+.subtitle{font-size:.78rem;color:var(--text-secondary);margin-bottom:16px}
+
+/* ─── PANEL ─── */
+.input-panel{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm)
+}
+textarea{
+  width:100%;height:120px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);border-radius:12px;padding:12px;outline:none;font-size:.85rem;
+  resize:none;transition:border .2s
+}
+textarea:focus{border-color:var(--cyan)}
+
+/* ─── BUTTONS ─── */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{
+  border:none;border-radius:12px;padding:11px 8px;color:#fff;font-weight:700;
+  cursor:pointer;flex:1;min-width:75px;font-size:.76rem;transition:all .2s ease;
+  white-space:nowrap;box-shadow:var(--shadow-sm)
+}
+.btn:active{transform:scale(.97)}
+.btn-rebuild{background:linear-gradient(145deg,#00b8d4,#006896)}
+.btn-reset{background:linear-gradient(145deg,#555,#333)}
+.btn-export{background:linear-gradient(145deg,#43a047,#2e7d32)}
+.btn-save{background:linear-gradient(145deg,#1976d2,#0d47a1)}
+.btn-restore{background:linear-gradient(145deg,#ff6f00,#e65100)}
+/* 3D Scan Button */
+.btn-scan{
+  background:var(--scan-grad);box-shadow:0 4px 0 #990000,var(--shadow-md);
+  transform:translateY(-1px);position:relative;overflow:hidden
+}
+.btn-scan:hover{transform:translateY(-2px);box-shadow:0 5px 0 #990000,var(--shadow-md)}
+.btn-scan:active{transform:translateY(1px);box-shadow:0 2px 0 #990000}
+.btn-scan .icon{font-size:1rem;margin-right:4px;display:inline-block}
+
+/* ─── FLOATING SCAN BUTTON ─── */
+.floating-scan{
+  position:fixed;bottom:24px;right:20px;width:64px;height:64px;border-radius:50%;
+  background:var(--scan-grad);border:none;color:#fff;font-size:1.5rem;cursor:pointer;
+  z-index:997;box-shadow:0 5px 0 #990000,0 6px 16px rgba(255,0,0,.35);
+  display:grid;place-items:center;transition:all .2s;transform:translateY(-1px)
+}
+.floating-scan:hover{transform:translateY(-2px);box-shadow:0 6px 0 #990000,0 8px 20px rgba(255,0,0,.4)}
+.floating-scan:active{transform:translateY(2px);box-shadow:0 2px 0 #990000,0 3px 8px rgba(255,0,0,.25)}
+
+/* ─── STATS ─── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  text-align:center;padding:12px 8px;box-shadow:var(--shadow-sm)
+}
+.stat-val{display:block;font-size:1.25rem;font-weight:800;margin-bottom:2px}
+.stat-label{font-size:.68rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+.found-val{color:var(--found)}
+.pending-val{color:var(--amber)}
+.done-val{color:var(--green)}
+.total-val{color:var(--cyan)}
+
+/* ─── LIST SECTIONS ─── */
+.section-header{
+  font-size:.8rem;font-weight:700;padding:10px 12px;margin:18px 0 8px;border-radius:10px;
+  display:flex;align-items:center;gap:8px
+}
+.header-found{background:rgba(0,204,255,.1);color:var(--found);border-left:3px solid var(--found)}
+.header-pending{background:rgba(255,171,0,.08);color:var(--amber);border-left:3px solid var(--amber)}
+.header-done{background:rgba(0,230,118,.08);color:var(--done);border-left:3px solid var(--done)}
+.item{
+  display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);
+  border-left:4px solid var(--amber);border-radius:12px;padding:12px;margin-bottom:8px;
+  flex-wrap:wrap;transition:all .2s
+}
+.item.found-top{
+  border-left-color:var(--found);background:rgba(0,204,255,.06);
+  box-shadow:0 0 0 1px rgba(0,204,255,.1),var(--shadow-sm)
+}
+.item.done{border-left-color:var(--done);opacity:.7}
+.reg-text{font-size:.95rem;font-weight:900;letter-spacing:.8px;min-width:100px}
+.status-tag{
+  font-size:.62rem;padding:3px 8px;border-radius:20px;font-weight:700;
+  text-transform:uppercase;white-space:nowrap
+}
+.tag-found{background:rgba(0,204,255,.15);color:var(--found)}
+.tag-pending{background:rgba(255,171,0,.15);color:var(--amber)}
+.tag-done{background:rgba(0,230,118,.15);color:var(--done)}
+.ref-input{
+  width:60px;background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:6px 4px;text-align:center;font-size:.8rem;font-weight:700;
+  outline:none;transition:border .2s
+}
+.ref-input:focus{border-color:var(--cyan)}
+.checkbox{
+  width:24px;height:24px;border:2px solid var(--border);border-radius:8px;
+  cursor:pointer;display:grid;place-items:center;flex:none;transition:all .2s
+}
+.checkbox.checked{background:var(--green);border-color:var(--green)}
+.checkbox.checked:after{content:"✓";font-weight:900;color:#000;font-size:.75rem}
+
+/* ─── NOTIFICATIONS ─── */
+.notify{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:12px 24px;
+  border-radius:12px;font-weight:700;z-index:9999;opacity:0;transition:opacity .25s ease;
+  pointer-events:none;box-shadow:var(--shadow-md);font-size:.9rem
+}
 .notify.show{opacity:1}
-.notify.found{background:#163a2e;border:1px solid var(--green);color:#9efc9e}
-.notify.unknown{background:#3a1e1e;border:1px solid var(--red);color:#fbb}
-.notify.duplicate{background:#2f1f44;border:1px solid var(--purple);color:#dcf}
-.notify.info{background:#1e2b3a;border:1px solid #0af;color:#adf}
-.export-modal,.restore-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:10000;opacity:0;visibility:hidden;transition:.2s}
-.export-modal.show,.restore-modal.show{opacity:1;visibility:visible}
-.export-box,.restore-box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px;max-width:340px;width:100%}
-.export-box h3,.restore-box h3{margin:0 0 14px 0;color:var(--cyan);font-size:1rem}
-.export-option,.restore-option{display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:12px 14px;border-radius:10px;margin-bottom:8px;cursor:pointer;font-size:.9rem}
-.export-option:hover,.restore-option:hover{border-color:var(--cyan)}
-.export-close,.restore-close{margin-top:10px;background:#444;text-align:center}
-.file-input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:12px;border-radius:10px;margin-bottom:10px}
-#scanner{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.92);z-index:998;border-top:1px solid var(--line);padding:12px 15px}
-.scanbox{max-width:540px;margin:0 auto}
-.video-wrap{position:relative;background:#000;border-radius:13px;overflow:hidden;aspect-ratio:16/11;margin:8px 0}
+.notify.found{background:#00332b;border:1px solid var(--green);color:#b9f6ca}
+.notify.unknown{background:#2d0f0f;border:1px solid var(--red);color:#ffcdd2}
+.notify.duplicate{background:#2a1b3d;border:1px solid var(--purple);color:#e1bee7}
+.notify.info{background:#0f1e2d;border:1px solid var(--cyan);color:#b3e5fc}
+
+/* ─── MODALS ─── */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;
+  justify-content:center;z-index:10000;opacity:0;visibility:hidden;transition:.25s ease
+}
+.modal-backdrop.show{opacity:1;visibility:visible}
+.modal-box{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;
+  margin:16px;max-width:340px;width:100%;box-shadow:var(--shadow-md)
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{color:var(--cyan);font-size:1rem;font-weight:800}
+.modal-close{
+  background:transparent;border:none;color:var(--text-secondary);font-size:1.2rem;
+  cursor:pointer;padding:4px 8px;line-height:1;border-radius:6px;transition:all .2s
+}
+.modal-close:hover{background:var(--surface);color:var(--text)}
+.modal-option{
+  display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);padding:14px;border-radius:10px;margin-bottom:8px;
+  cursor:pointer;font-size:.9rem;transition:all .2s
+}
+.modal-option:hover{border-color:var(--cyan);transform:translateX(2px)}
+.file-field{
+  width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);
+  padding:14px;border-radius:10px;margin-bottom:12px
+}
+
+/* ─── SCANNER AREA ─── */
+#scanner{
+  position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.92);z-index:998;
+  border-top:1px solid var(--border);padding:14px 16px;box-shadow:0 -4px 20px rgba(0,0,0,.3)
+}
+.scanner-inner{max-width:540px;margin:0 auto}
+.camera-wrap{
+  position:relative;background:#000;border-radius:16px;overflow:hidden;
+  aspect-ratio:16/10;margin:0 0 10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)
+}
 #video{width:100%;height:100%;object-fit:cover;display:block}
-.frame{position:absolute;left:7%;right:7%;top:39%;height:22%;border:3px solid var(--scan);border-radius:9px;box-shadow:0 0 0 999px rgba(0,0,0,.6);pointer-events:none}
-.scanline{position:absolute;left:4%;right:4%;top:50%;height:2px;background:#f6b;box-shadow:0 0 10px #f29;animation:sl 1.5s linear infinite}
-@keyframes sl{0%{top:42%}50%{top:58%}100%{top:42%}}
-.scan-status{text-align:center;padding:6px;color:#ddd;font-size:.8rem;line-height:1.4}
-.scanner-controls{display:flex;gap:8px;margin-top:8px}
-.scanner-controls button{flex:1}
-.close{background:#333}
+.scan-frame{
+  position:absolute;left:7%;right:7%;top:39%;height:22%;border:2px solid var(--red);
+  border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.6);pointer-events:none
+}
+.scan-line{
+  position:absolute;left:3%;right:3%;top:50%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);
+  box-shadow:0 0 8px var(--red);animation:scanLine 1.5s linear infinite
+}
+@keyframes scanLine{0%{top:42%}50%{top:58%}100%{top:42%}}
+.scanner-status{text-align:center;padding:6px 4px;color:var(--text-secondary);font-size:.8rem;line-height:1.4;margin-bottom:8px}
+.scanner-buttons{display:flex;gap:10px}
+.torch-idle{background:#ffc107;color:#000;font-weight:700}
+.torch-active{background:#ffd600;color:#000;font-weight:900;box-shadow:0 0 16px #ffd600}
+.torch-disabled{background:#424242;color:#888;cursor:not-allowed}
+.btn-stop{background:#3a3a3a}
+
+/* Hidden canvas */
+#canvas{display:none}
 </style>
 </head>
 <body>
 
 <div id="notify" class="notify"></div>
 
-<!-- Header with Title + Theme Toggle -->
-<div class="header-row">
-  <h1 class="title-main">Hyde Park Corner Job Planner</h1>
-  <button class="theme-toggle" id="themeBtn" title="Toggle Dark/Light Theme">🌙</button>
+<!-- Header -->
+<div class="header-wrap">
+  <h1>Hyde Park Corner Job Planner</h1>
+  <button class="theme-toggle" id="themeBtn" title="Toggle Dark/Light">🌙</button>
 </div>
-<p>✅ Save • Restore • Export • Scan • Samsung flashlight</p>
+<p class="subtitle">Save • Restore • Export • Scan • Flashlight</p>
 
-<div class="panel">
- <textarea id="regBox"></textarea>
- <div class="row">
-  <button class="btn process" id="processBtn">⚡ REBUILD</button>
-  <button class="btn scanbtn" id="openScanBtn">📷 SCAN</button>
-  <button class="btn clear" id="clearBtn">🗑️ RESET</button>
-  <button class="btn exportbtn" id="exportBtn">📤 EXPORT</button>
-  <button class="btn savebtn" id="saveLayoutBtn">💾 SAVE</button>
-  <button class="btn restorebtn" id="restoreLayoutBtn">📂 RESTORE</button>
- </div>
-</div>
-
-<div class="stats">
- <div class="stat"><b id="foundCount">0</b><span>FOUND</span></div>
- <div class="stat"><b id="pendingCount">0</b><span>PENDING</span></div>
- <div class="stat"><b id="doneCount">0</b><span>DONE</span></div>
- <div class="stat"><b id="totalCount">0</b><span>TOTAL</span></div>
+<!-- Input Area -->
+<div class="input-panel">
+  <textarea id="regBox" placeholder="Paste your registration list here…"></textarea>
+  <div class="btn-row">
+    <button class="btn btn-rebuild" id="processBtn">⚡ REBUILD</button>
+    <button class="btn btn-scan" id="openScanBtn"><span class="icon">📷</span> SCAN</button>
+    <button class="btn btn-reset" id="clearBtn">🗑️ RESET</button>
+    <button class="btn btn-export" id="exportBtn">📤 EXPORT</button>
+    <button class="btn btn-save" id="saveLayoutBtn">💾 SAVE</button>
+    <button class="btn btn-restore" id="restoreLayoutBtn">📂 RESTORE</button>
+  </div>
 </div>
 
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card"><span class="stat-val found-val" id="foundCount">0</span><span class="stat-label">Found</span></div>
+  <div class="stat-card"><span class="stat-val pending-val" id="pendingCount">0</span><span class="stat-label">Pending</span></div>
+  <div class="stat-card"><span class="stat-val done-val" id="doneCount">0</span><span class="stat-label">Done</span></div>
+  <div class="stat-card"><span class="stat-val total-val" id="totalCount">0</span><span class="stat-label">Total</span></div>
+</div>
+
+<!-- Found Section -->
 <div id="foundSection" style="display:none">
- <div class="list-title title-found">🔵 FOUND — READY</div>
- <div id="foundList"></div>
+  <div class="section-header header-found">🔵 FOUND — READY</div>
+  <div id="foundList"></div>
 </div>
 
-<div class="list-title title-pending">⏳ PENDING</div>
+<!-- Pending -->
+<div class="section-header header-pending">⏳ PENDING</div>
 <div id="pendingList"></div>
 
-<div class="list-title title-done">✅ COMPLETED</div>
+<!-- Completed -->
+<div class="section-header header-done">✅ COMPLETED</div>
 <div id="doneList"></div>
 
-<!-- Floating Red Scan Button — Bottom Right -->
+<!-- Floating Scan Button -->
 <button class="floating-scan" id="floatingScanBtn" title="Start Scanning">📷</button>
 
+<!-- Scanner -->
 <div id="scanner" style="display:none">
- <div class="scanbox">
-  <div class="video-wrap"><video id="video" autoplay muted playsinline></video><div class="frame"><div class="scanline"></div></div></div>
-  <div class="scan-status" id="scanStatus">🔴 Starting…</div>
-  <div class="scanner-controls">
-   <button class="btn torch-idle" id="torchBtn" disabled>🔦 Loading…</button>
-   <button class="btn close" id="closeScan">✕ STOP</button>
+  <div class="scanner-inner">
+    <div class="camera-wrap">
+      <video id="video" autoplay muted playsinline></video>
+      <div class="scan-frame"><div class="scan-line"></div></div>
+    </div>
+    <div class="scanner-status" id="scanStatus">🔐 Requesting camera…</div>
+    <div class="scanner-buttons">
+      <button class="btn torch-idle" id="torchBtn" disabled>🔦 Loading…</button>
+      <button class="btn btn-stop" id="closeScan">✕ STOP</button>
+    </div>
   </div>
- </div>
 </div>
 
 <!-- Export Modal -->
-<div id="exportModal" class="export-modal">
- <div class="export-box">
-  <h3>📤 EXPORT OPTION</h3>
-  <button class="export-option" data-type="all">📋 1. Complete JOB List</button>
-  <button class="export-option" data-type="completed">✅ 2. Completed JOBS</button>
-  <button class="export-option" data-type="remaining">⏳ 3. Remaining JOBS</button>
-  <button class="export-option export-close" id="exportClose">✕ CANCEL</button>
- </div>
+<div id="exportModal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 class="modal-title">📤 EXPORT OPTION</h3>
+      <button class="modal-close" id="exportClose">✕</button>
+    </div>
+    <button class="modal-option" data-type="all">📋 1. Complete Job List</button>
+    <button class="modal-option" data-type="completed">✅ 2. Completed Jobs</button>
+    <button class="modal-option" data-type="remaining">⏳ 3. Remaining Jobs</button>
+  </div>
 </div>
 
-<!-- Restore Modal -->
-<div id="restoreModal" class="restore-modal">
- <div class="restore-box">
-  <h3>📂 RESTORE LAYOUT</h3>
-  <input type="file" id="restoreFileInput" accept=".json,.txt" class="file-input">
-  <button class="restore-option" id="doRestoreBtn">✅ RESTORE FROM FILE</button>
-  <button class="restore-option restore-close" id="restoreClose">✕ CANCEL</button>
- </div>
+<!-- Restore Modal — WITH ✕ CLOSE BUTTON -->
+<div id="restoreModal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 class="modal-title">📂 RESTORE LAYOUT</h3>
+      <button class="modal-close" id="restoreClose">✕</button>
+    </div>
+    <input type="file" id="restoreFileInput" accept=".json,.txt" class="file-field">
+    <button class="modal-option" id="doRestoreBtn">✅ Restore from File</button>
+  </div>
 </div>
 
-<canvas id="canvas" style="display:none"></canvas>
+<canvas id="canvas"></canvas>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -211,7 +351,7 @@ NX72VLC
 NX72VLT
 NX72VLO`;
 
-// Theme Toggle
+// Theme
 function setTheme(mode){
   document.documentElement.setAttribute('data-theme',mode);
   $('themeBtn').textContent=mode==='light'?'☀️':'🌙';
@@ -228,120 +368,128 @@ function initTheme(){
 
 function clean(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function looksLikePlate(s){return s.length>=6 && s.length<=8 && /[A-Z]/.test(s) && /[0-9]/.test(s)}
-function showNotify(msg,type='info'){$('notify').className='notify show '+type;$('notify').textContent=msg;setTimeout(()=>$('notify').classList.remove('show'),2000)}
+function showNotify(msg,type='info'){
+  $('notify').className='notify show '+type;
+  $('notify').textContent=msg;
+  setTimeout(()=>$('notify').classList.remove('show'),2500);
+}
 
-// Sounds
-function soundFound(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
-function soundUnknown(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(220,c.currentTime);o.frequency.exponentialRampToValueAtTime(110,c.currentTime+.2);g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
-function soundDuplicate(){try{const c=new (window.AudioContext||webkitAudioContext);const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(523,c.currentTime);o.frequency.setValueAtTime(659,c.currentTime+.1);g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.35);}catch(e){}}
+// ─── LOUD SOUNDS ───
+function soundFound(){
+  try{const c=new (window.AudioContext||webkitAudioContext),o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.setValueAtTime(880,c.currentTime);o.frequency.setValueAtTime(1100,c.currentTime+.12);
+    g.gain.setValueAtTime(.7,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.4);
+    o.connect(g).connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+.4);
+  }catch(e){}
+}
+function soundDuplicate(){
+  try{const c=new (window.AudioContext||webkitAudioContext),o=c.createOscillator(),g=c.createGain();
+    o.type='triangle';
+    o.frequency.setValueAtTime(523,c.currentTime);
+    o.frequency.setValueAtTime(659,c.currentTime+.1);
+    o.frequency.setValueAtTime(784,c.currentTime+.2);
+    g.gain.setValueAtTime(.7,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.5);
+    o.connect(g).connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+.5);
+  }catch(e){}
+}
+function soundUnknown(){
+  try{const c=new (window.AudioContext||webkitAudioContext),o=c.createOscillator(),g=c.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(320,c.currentTime);o.frequency.exponentialRampToValueAtTime(120,c.currentTime+.45);
+    g.gain.setValueAtTime(.65,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.45);
+    o.connect(g).connect(c.destination);o.start(c.currentTime);o.stop(c.currentTime+.45);
+  }catch(e){}
+}
 
-// Samsung Flashlight
+// Flashlight
 async function checkFlashSupport(){
- if(!track)return null;
- const cap=track.getCapabilities();
- if('torch' in cap)return supportMode='torch','torch';
- if(cap.fillLightMode?.includes('continuous'))return supportMode='continuous','continuous';
- if(cap.fillLightMode?.includes('flash'))return supportMode='flash','flash';
- return null;
+  if(!track)return null;
+  const cap=track.getCapabilities();
+  if('torch' in cap)return supportMode='torch','torch';
+  if(cap.fillLightMode?.includes('continuous'))return supportMode='continuous','continuous';
+  if(cap.fillLightMode?.includes('flash'))return supportMode='flash','flash';
+  return null;
 }
 async function setTorchLED(on){
- if(!track||!supportMode)return false;
- try{
-  if(supportMode==='torch'){await track.applyConstraints({advanced:[{torch:on}]});return true}
-  if(supportMode==='continuous'){await track.applyConstraints({advanced:[{fillLightMode:on?'continuous':'off'}]});return true}
-  if(supportMode==='flash'){await track.applyConstraints({advanced:[{fillLightMode:on?'flash':'off'}]});return true}
- }catch(e){}
- return false;
+  if(!track||!supportMode)return false;
+  try{
+    if(supportMode==='torch'){await track.applyConstraints({advanced:[{torch:on}]});return true}
+    if(supportMode==='continuous'){await track.applyConstraints({advanced:[{fillLightMode:on?'continuous':'off'}]});return true}
+    if(supportMode==='flash'){await track.applyConstraints({advanced:[{fillLightMode:on?'flash':'off'}]});return true}
+  }catch(e){}
+  return false;
 }
 async function toggleFlash(){
   if(!track)return showNotify('❌ Start scanner first','unknown');
   torchOn=!torchOn;
   const ok=await setTorchLED(torchOn),b=$('torchBtn');
   if(ok){
-    if(torchOn){
-      b.className='btn torch-active';
-      b.textContent='🔦 LED ON';
-      showNotify('✅ FLASHLIGHT ON','found');
-    }else{
-      b.className='btn torch-idle';
-      b.textContent='🔦 TURN LED ON';
-      showNotify('🔦 FLASHLIGHT OFF','info');
-    }
+    if(torchOn){b.className='btn torch-active';b.textContent='🔦 ON';showNotify('✅ Flashlight ON','found')}
+    else{b.className='btn torch-idle';b.textContent='🔦 Torch';showNotify('🔦 Flashlight OFF','info')}
   }else{
     torchOn=!torchOn;
-    b.className='btn torch-disabled';
-    b.textContent='🔦 USE PHONE TORCH';
-    showNotify('⚠️ Browser cannot control LED — use phone torch manually','unknown');
+    b.className='btn torch-disabled';b.textContent='🔦 Use Phone Torch';
+    showNotify('⚠️ Browser LED control unavailable — use phone torch','unknown');
   }
 }
 
 // Data
-function buildList(t){
-  return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({reg:r,done:false,found:false,customNum:''}));
-}
+function buildList(t){return t.split('\n').map(r=>clean(r)).filter(r=>r.length>4).map(r=>({reg:r,done:false,found:false,customNum:''}))}
 function saveData(){localStorage.setItem(SAVE_KEY,JSON.stringify({listText:$('regBox').value,items}))}
 function loadData(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d?.items?.length){items=d.items;$('regBox').value=d.listText;return true}}catch(e){}return false}
-function updateCustomNum(index,value){items[index].customNum=value.replace(/[^0-9]/g,'').slice(0,4);saveData()}
+function updateCustomNum(i,v){items[i].customNum=v.replace(/[^0-9]/g,'').slice(0,4);saveData()}
 
-// Save/Restore
 function getTodayDate(){const d=new Date();return `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`}
 function saveLayoutToFile(){
-  const layoutData={version:"1.0",savedAt:new Date().toISOString(),listText:$('regBox').value,items:items.map(i=>({reg:i.reg,done:i.done,found:i.found,customNum:i.customNum}))};
-  const fileName=`HPC-LAYOUT-SAVED-(${getTodayDate()}).json`;
-  const blob=new Blob([JSON.stringify(layoutData,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=fileName;a.click();URL.revokeObjectURL(url);
-  showNotify('✅ Layout saved: '+fileName,'found');
+  const data={savedAt:new Date().toISOString(),listText:$('regBox').value,items:items.map(i=>({...i}))};
+  const name=`HPC-LAYOUT-SAVED-(${getTodayDate()}).json`;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+  showNotify('✅ Saved: '+name,'found');
 }
 async function restoreLayoutFromFile(file){
-  try{
-    const text=await file.text();const data=JSON.parse(text);
-    if(!data.items||!Array.isArray(data.items))throw new Error('Invalid file format');
-    items=data.items;$('regBox').value=data.listText||'';saveData();render();
-    showNotify('✅ Layout restored — '+items.length+' records loaded','found');
+  try{const text=await file.text(),d=JSON.parse(text);
+    if(!d.items||!Array.isArray(d.items))throw new Error('Invalid file');
+    items=d.items;$('regBox').value=d.listText||'';saveData();render();
+    showNotify('✅ Restored — '+items.length+' records','found');
     $('restoreModal').classList.remove('show');
   }catch(err){showNotify('❌ Restore failed: '+err.message,'unknown')}
 }
 
 // Export
-function generateExportText(filterType){
-  let filteredItems=[],headerLabel='';
-  if(filterType==='all'){filteredItems=[...items];headerLabel='COMPLETE JOB LIST'}
-  else if(filterType==='completed'){filteredItems=items.filter(i=>i.done);headerLabel='COMPLETED JOBS'}
-  else if(filterType==='remaining'){filteredItems=items.filter(i=>!i.done);headerLabel='REMAINING JOBS'}
-  let text=`${headerLabel}\nDate: ${new Date().toLocaleDateString()}\nTotal: ${filteredItems.length}\n${'━'.repeat(30)}\n\n`;
-  filteredItems.forEach((item,idx)=>{
-    const status=item.done?'[DONE]':(item.found?'[FOUND]':'[PENDING]');
-    text+=`${String(idx+1).padStart(3,'0')}  ${item.reg}  Ref: ${item.customNum||'----'}  ${status}\n`;
+function generateExport(filterType){
+  let filtered=[],label='';
+  if(filterType==='all'){filtered=[...items];label='COMPLETE JOB LIST'}
+  else if(filterType==='completed'){filtered=items.filter(i=>i.done);label='COMPLETED JOBS'}
+  else if(filterType==='remaining'){filtered=items.filter(i=>!i.done);label='REMAINING JOBS'}
+  let text=`${label}\nDate: ${new Date().toLocaleDateString()}\nTotal: ${filtered.length}\n${'━'.repeat(30)}\n\n`;
+  filtered.forEach((it,idx)=>{
+    const s=it.done?'[DONE]':it.found?'[FOUND]':'[PENDING]';
+    text+=`${String(idx+1).padStart(3,'0')}  ${it.reg}  Ref: ${it.customNum||'----'}  ${s}\n`;
   });
   return text;
 }
-function getFileName(filterType){
-  const date=getTodayDate();
-  if(filterType==='all')return `HPC-JOBS-LIST-(${date}).txt`;
-  if(filterType==='completed')return `HPC-COMPLETED-JOBS-(${date}).txt`;
-  return `HPC-PENDING-JOBS-(${date}).txt`;
-}
-function downloadFile(filterType){
-  const text=generateExportText(filterType),name=getFileName(filterType);
+function getExportName(t){const d=getTodayDate();if(t==='all')return`HPC-JOBS-LIST-(${d}).txt`;if(t==='completed')return`HPC-COMPLETED-JOBS-(${d}).txt`;return`HPC-PENDING-JOBS-(${d}).txt`}
+function downloadFile(t){
+  const text=generateExport(t),name=getExportName(t);
   const blob=new Blob([text],{type:'text/plain'}),url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
-  showNotify('✅ Exported: '+name,'found');$('exportModal').classList.remove('show');
+  showNotify('✅ Exported: '+name,'found');
+  $('exportModal').classList.remove('show');
 }
 
 // Render
 function render(){
   const f=items.filter(i=>i.found&&!i.done),p=items.filter(i=>!i.found&&!i.done),d=items.filter(i=>i.done);
   $('foundSection').style.display=f.length?'block':'none';
-  $('foundList').innerHTML=f.map(item=>{const idx=items.indexOf(item);return `<div class="item found-top"><div class="tick" onclick="markDone(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-found">FOUND</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
-  $('pendingList').innerHTML=p.map(item=>{const idx=items.indexOf(item);return `<div class="item"><div class="tick" onclick="markDone(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-pending">PENDING</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
-  $('doneList').innerHTML=d.map(item=>{const idx=items.indexOf(item);return `<div class="item done"><div class="tick checked" onclick="unmark(${idx})"></div><span class="reg">${item.reg}</span><span class="section-tag sec-done">DONE</span><input type="text" class="custom-num" placeholder="0000" value="${item.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${idx}, this.value)"></div>`}).join('');
+  $('foundList').innerHTML=f.map((it,idx)=>{const i=items.indexOf(it);return `<div class="item found-top"><div class="checkbox" onclick="markDone(${i})"></div><span class="reg-text">${it.reg}</span><span class="status-tag tag-found">FOUND</span><input class="ref-input" placeholder="0000" value="${it.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${i},this.value)"></div>`}).join('');
+  $('pendingList').innerHTML=p.map((it,idx)=>{const i=items.indexOf(it);return `<div class="item"><div class="checkbox" onclick="markDone(${i})"></div><span class="reg-text">${it.reg}</span><span class="status-tag tag-pending">PENDING</span><input class="ref-input" placeholder="0000" value="${it.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${i},this.value)"></div>`}).join('');
+  $('doneList').innerHTML=d.map((it,idx)=>{const i=items.indexOf(it);return `<div class="item done"><div class="checkbox checked" onclick="unmark(${i})"></div><span class="reg-text">${it.reg}</span><span class="status-tag tag-done">DONE</span><input class="ref-input" placeholder="0000" value="${it.customNum}" maxlength="4" inputmode="numeric" oninput="updateCustomNum(${i},this.value)"></div>`}).join('');
   $('foundCount').textContent=f.length;$('pendingCount').textContent=p.length;$('doneCount').textContent=d.length;$('totalCount').textContent=items.length;
 }
 function markDone(i){items[i].done=true;items[i].found=false;saveData();render()}
 function unmark(i){items[i].done=false;saveData();render()}
 
-// Scanner — shared function for both buttons
+// Scanner
 async function startScanner(){
   if(!items.length)return alert('Build list first');
   $('scanner').style.display='block';
@@ -349,15 +497,13 @@ async function startScanner(){
   try{
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
     $('video').srcObject=stream;track=stream.getVideoTracks()[0];
-    const mode=await checkFlashSupport();const btn=$('torchBtn');
-    if(mode){btn.disabled=false;btn.className='btn torch-idle';btn.textContent='🔦 TURN LED ON';$('scanStatus').innerHTML=`✅ Ready — Flashlight: <b>${mode}</b>`;}
-    else{btn.disabled=true;btn.className='btn torch-disabled';btn.textContent='🔦 USE PHONE TORCH';$('scanStatus').innerHTML='⚠️ Browser LED control unavailable.<br>👉 Use phone torch from top panel.';}
+    const mode=await checkFlashSupport();const b=$('torchBtn');
+    if(mode){b.disabled=false;b.className='btn torch-idle';b.textContent='🔦 Torch';$('scanStatus').innerHTML=`✅ Ready — Flashlight: ${mode}`;}
+    else{b.disabled=true;b.className='btn torch-disabled';b.textContent='🔦 Phone Torch';$('scanStatus').innerHTML='⚠️ Browser LED unavailable — use phone torch';}
     scanLoop();
   }catch(e){$('scanStatus').textContent='❌ Camera denied — Allow in Settings'}
 }
-
-$('openScanBtn').onclick=startScanner;
-$('floatingScanBtn').onclick=startScanner;
+$('openScanBtn').onclick=startScanner;$('floatingScanBtn').onclick=startScanner;
 
 $('closeScan').onclick=async()=>{
   if(torchOn&&track)await setTorchLED(false);
@@ -377,7 +523,7 @@ async function scanLoop(){
       const r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:6});
       const found=clean(r.data.text);
       if(!looksLikePlate(found)){setTimeout(scanLoop,800);return}
-      const match=items.find(i=>found.includes(i.reg));
+      const match=items.find(it=>found.includes(it.reg));
       if(match){
         if(!match.found&&!match.done&&Date.now()-lastHit>2500){
           lastHit=Date.now();match.found=true;soundFound();showNotify('✅ FOUND: '+match.reg,'found');saveData();render();
@@ -397,19 +543,15 @@ $('themeBtn').onclick=toggleTheme;
 $('torchBtn').onclick=toggleFlash;
 $('exportBtn').onclick=()=>$('exportModal').classList.add('show');
 $('exportClose').onclick=()=>$('exportModal').classList.remove('show');
-document.querySelectorAll('.export-option[data-type]').forEach(b=>b.onclick=()=>downloadFile(b.dataset.type));
+document.querySelectorAll('.modal-option[data-type]').forEach(b=>b.onclick=()=>downloadFile(b.dataset.type));
 $('saveLayoutBtn').onclick=saveLayoutToFile;
 $('restoreLayoutBtn').onclick=()=>$('restoreModal').classList.add('show');
 $('restoreClose').onclick=()=>$('restoreModal').classList.remove('show');
-$('doRestoreBtn').onclick=()=>{const file=$('restoreFileInput').files[0];if(!file)return showNotify('⚠️ Select a file first','unknown');restoreLayoutFromFile(file)};
+$('doRestoreBtn').onclick=()=>{const f=$('restoreFileInput').files[0];if(!f)return showNotify('⚠️ Select file first','unknown');restoreLayoutFromFile(f)};
 
-window.onload=()=>{
-  initTheme();
-  if(!loadData()){$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST)}
-  render();
-};
+window.onload=()=>{initTheme();if(!loadData()){$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST)}render()};
 $('processBtn').onclick=()=>{items=buildList($('regBox').value);saveData();render()};
-$('clearBtn').onclick=()=>{if(confirm('Reset ALL progress? This cannot be undone.')){localStorage.removeItem(SAVE_KEY);$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST);render()}};
+$('clearBtn').onclick=()=>{if(confirm('Reset ALL progress? Cannot undo.')){localStorage.removeItem(SAVE_KEY);$('regBox').value=PRESET_LIST;items=buildList(PRESET_LIST);render()}};
 </script>
 </body>
 </html>
