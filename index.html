@@ -11,9 +11,10 @@
   --bg:#07090d;--surface:#0e1219;--card:#121823;--card2:#182130;--border:#263244;
   --text:#f5f8ff;--muted:#8f9caf;--cyan:#35d8ff;--cyan2:#087da0;
   --red:#ff3d67;--red2:#9e1236;--green:#31e58a;--green2:#087348;
-  --amber:#ffc247;--blue:#5d8cff;--orange:#ff8b3d;--shadow:0 14px 35px rgba(0,0,0,.34)
+  --amber:#ffc247;--blue:#5d8cff;--orange:#ff8b3d;--purple:#a855f7;--purple2:#6b21a8;
+  --shadow:0 14px 35px rgba(0,0,0,.34)
 }
-[data-theme=light]{--bg:#eef2f7;--surface:#fff;--card:#fff;--card2:#f2f5f9;--border:#d8e0ea;--text:#101722;--muted:#637083;--cyan:#008fc2;--cyan2:#006582;--red:#e62f57;--red2:#9b1737;--green:#07985a;--green2:#056b40;--amber:#c98200;--blue:#285ed0;--orange:#db5e10;--shadow:0 12px 28px rgba(26,40,60,.12)}
+[data-theme=light]{--bg:#eef2f7;--surface:#fff;--card:#fff;--card2:#f2f5f9;--border:#d8e0ea;--text:#101722;--muted:#637083;--cyan:#008fc2;--cyan2:#006582;--red:#e62f57;--red2:#9b1737;--green:#07985a;--green2:#056b40;--amber:#c98200;--blue:#285ed0;--orange:#db5e10;--purple:#9333ea;--purple2:#581c87;--shadow:0 12px 28px rgba(26,40,60,.12)}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% -10%,rgba(53,216,255,.12),transparent 38%),var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
 body{max-width:900px;margin:auto;padding:14px 14px 105px}
@@ -31,39 +32,45 @@ button{cursor:pointer}
 .hero-sub{color:var(--muted);font-size:.76rem;margin-bottom:15px}
 textarea{width:100%;height:145px;resize:vertical;min-height:110px;background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:16px;color:var(--text);padding:14px;outline:none;font-size:.84rem;line-height:1.45}
 textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(53,216,255,.09)}
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:13px}
-.btn{position:relative;border:0;border-radius:14px;min-height:48px;color:white;font-weight:850;font-size:.76rem;letter-spacing:.2px;overflow:hidden;box-shadow:0 7px 0 rgba(0,0,0,.3),0 12px 22px rgba(0,0,0,.2);transform:translateY(0);transition:.18s}
+.actions{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:13px}
+.btn{position:relative;border:0;border-radius:12px;min-height:44px;color:white;font-weight:900;font-size:.66rem;letter-spacing:.3px;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,.3),0 10px 18px rgba(0,0,0,.15);transform:translateY(0);transition:.15s;white-space:nowrap}
 .btn:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,255,255,.2),transparent 42%,rgba(255,255,255,.05));pointer-events:none}
-.btn:active{transform:translateY(5px);box-shadow:0 2px 0 rgba(0,0,0,.3),0 5px 10px rgba(0,0,0,.18)}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.3),0 4px 8px rgba(0,0,0,.15)}
 .rebuild{background:linear-gradient(145deg,var(--cyan),var(--cyan2))}
+.remove{background:linear-gradient(145deg,var(--purple),var(--purple2))}
 .scan{background:linear-gradient(145deg,var(--red),var(--red2))}
 .reset{background:linear-gradient(145deg,#5a6472,#2b333e)}
+.completed{background:linear-gradient(145deg,#10b981,#047857)}
 .export{background:linear-gradient(145deg,var(--green),var(--green2))}
 .save{background:linear-gradient(145deg,var(--blue),#173c96)}
 .restore{background:linear-gradient(145deg,var(--orange),#a33e09)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:15px 0}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:11px 7px;text-align:center;box-shadow:var(--shadow)}
-.stat b{display:block;font-size:1.18rem}.stat span{font-size:.61rem;color:var(--muted);font-weight:800;letter-spacing:.5px}
+.stat b{display:block;font-size:1.18rem}.stat span{font-size:.61rem;color:var(--muted);font-weight:900;letter-spacing:.5px}
 .s-found{color:var(--cyan)}.s-pending{color:var(--amber)}.s-done{color:var(--green)}.s-total{color:var(--blue)}
 .section{margin-top:15px}
 .section-head{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-radius:13px;background:var(--card2);border:1px solid var(--border);font-size:.72rem;font-weight:900;letter-spacing:.4px}
 .section-head.f{color:var(--cyan);border-left:3px solid var(--cyan)}.section-head.p{color:var(--amber);border-left:3px solid var(--amber)}.section-head.d{color:var(--green);border-left:3px solid var(--green)}
 .item{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;margin-top:8px;padding:11px;border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:15px;background:var(--card);box-shadow:0 6px 18px rgba(0,0,0,.16)}
 .item.found{border-left-color:var(--cyan);background:linear-gradient(90deg,rgba(53,216,255,.08),var(--card))}
-.item.done{border-left-color:var(--green);opacity:.72}
-.check{width:27px;height:27px;border:2px solid var(--border);border-radius:9px;display:grid;place-items:center}
-.check.checked{background:var(--green);border-color:var(--green);color:#00170d;font-weight:1000}
+.item.done{border-left-color:var(--green);opacity:.85}
+.item.can-remove{border-left-color:var(--purple);background:rgba(168,85,247,.06)}
+.item.can-complete{border-left-color:var(--green);background:rgba(49,229,138,.06)}
+.check{width:27px;height:27px;border:2px solid var(--border);border-radius:9px;display:grid;place-items:center;cursor:pointer;transition:.15s;user-select:none}
+.check.checked-remove{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:1000}
+.check.checked-complete{background:var(--green);border-color:var(--green);color:#00170d;font-weight:1000}
+.check.done-check{background:var(--green);border-color:var(--green);color:#00170d}
 .reg{font-size:.95rem;font-weight:950;letter-spacing:1px}.meta{font-size:.63rem;color:var(--muted);margin-top:3px}
-.controls{display:flex;gap:5px;align-items:center}
+.controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .ref,.note{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 5px;outline:none;font-size:.68rem}
-.ref{width:65px;text-align:center}.note{width:100px}.ref:focus,.note:focus{border-color:var(--cyan)}
-.badge{font-size:.57rem;font-weight:900;border-radius:30px;padding:5px 8px;white-space:nowrap}.bf{background:#073d4b;color:var(--cyan)}.bp{background:#49350a;color:var(--amber)}.bd{background:#073d27;color:var(--green)}
-[data-theme=light] .bf{background:#d9f7ff}[data-theme=light] .bp{background:#fff0c9}[data-theme=light] .bd{background:#d8f7e7}
+.ref{width:65px;text-align:center}.note{width:110px}.ref:focus,.note:focus{border-color:var(--cyan)}
+.badge{font-size:.57rem;font-weight:900;border-radius:30px;padding:5px 8px;white-space:nowrap}.bf{background:#073d4b;color:var(--cyan)}.bp{background:#49350a;color:var(--amber)}.bd{background:#073d27;color:var(--green)}.br{background:#3b0764;color:#d8b4fe}.bc{background:#064e3b;color:#6ee7b7}
+[data-theme=light] .bf{background:#d9f7ff}[data-theme=light] .bp{background:#fff0c9}[data-theme=light] .bd{background:#d8f7e7}[data-theme=light] .br{background:#f3e8ff}[data-theme=light] .bc{background:#d1fae5}
 .floating{position:fixed;right:18px;bottom:19px;width:66px;height:66px;border-radius:22px;border:1px solid #ff718d;background:linear-gradient(145deg,var(--red),var(--red2));color:white;font-size:24px;z-index:2000;box-shadow:0 9px 0 #650d25,0 16px 30px #ff174455;transform:rotate(-3deg);transition:.18s}
 .floating:active{transform:translateY(5px) rotate(-3deg);box-shadow:0 3px 0 #650d25,0 7px 14px #ff174422}
-.notify{position:fixed;top:15px;left:50%;transform:translateX(-50%) translateY(-15px);z-index:9999;padding:11px 17px;border-radius:14px;background:var(--card);border:1px solid var(--cyan);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;font-size:.78rem;font-weight:800;max-width:90%;text-align:center}
+.notify{position:fixed;top:15px;left:50%;transform:translateX(-50%) translateY(-15px);z-index:9999;padding:11px 17px;border-radius:14px;background:var(--card);border:1px solid var(--cyan);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;font-size:.78rem;font-weight:900;max-width:90%;text-align:center}
 .notify.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.notify.found{border-color:var(--green)}.notify.bad{border-color:var(--red)}.notify.info{border-color:var(--cyan)}
+.notify.found{border-color:var(--green)}.notify.bad{border-color:var(--red)}.notify.info{border-color:var(--cyan)}.notify.purple{border-color:var(--purple)}.notify.green{border-color:var(--green)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(9px);z-index:5000;display:grid;place-items:center;padding:18px;opacity:0;visibility:hidden;transition:.2s}
 .modal.show{opacity:1;visibility:visible}.modal-box{width:min(390px,100%);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:0 25px 70px #000b}
 .modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-weight:900;color:var(--cyan)}
@@ -81,8 +88,8 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(53,216,255,.09
 .scan-info{text-align:center;padding:10px 4px;color:#a9b6c8;font-size:.72rem}.scan-info strong{color:#fff}
 .scan-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}.scan-btn{border:0;border-radius:13px;padding:12px;font-weight:900}.torch{background:#ffbf21;color:#171000}.stop{background:#2b3442;color:#fff}
 #canvas{display:none}
-@media(max-width:620px){.actions{grid-template-columns:repeat(2,1fr)}.item{grid-template-columns:30px 1fr}.controls{grid-column:2;justify-content:flex-start;flex-wrap:wrap}.note{width:125px}.badge{grid-column:2;width:max-content}.stats{gap:6px}}
-@media(min-width:621px){body{padding-left:22px;padding-right:22px}.hero{padding:22px}.actions{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:760px){.actions{grid-template-columns:repeat(4,1fr);gap:8px}.btn{font-size:.6rem}}
+@media(min-width:761px){body{padding-left:22px;padding-right:22px}.hero{padding:22px}}
 </style>
 </head>
 <body>
@@ -98,8 +105,10 @@ textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(53,216,255,.09
   <textarea id="regBox" placeholder="Paste your list here…"></textarea>
   <div class="actions">
     <button class="btn rebuild" id="processBtn">⚡ REBUILD</button>
+    <button class="btn remove" id="removeBtn">✂️ REMOVE</button>
     <button class="btn scan" id="openScanBtn">⌁ SCAN</button>
     <button class="btn reset" id="clearBtn">↺ RESET</button>
+    <button class="btn completed" id="completedBtn">✓ COMPLETED</button>
     <button class="btn export" id="exportBtn">⇧ EXPORT</button>
     <button class="btn save" id="saveLayoutBtn">▣ SAVE</button>
     <button class="btn restore" id="restoreLayoutBtn">⇩ RESTORE</button>
@@ -143,10 +152,10 @@ function clean(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function parseLine(line){
  const original=line.trim(); if(!original)return null;
  let m=original.match(/^(.*?)\s*[-–]\s*DONE\s*$/i);
- if(m){let reg=clean(m[1]);return reg.length>=5?{reg,done:true,found:false,customNum:'',notes:''}:null}
+ if(m){let reg=clean(m[1]);return reg.length>=5?{reg,done:true,found:false,customNum:'',notes:'',markedForRemove:false,markedForComplete:false}:null}
  m=original.match(/^(.*?)\s*[-–]\s*(.+)$/);
- if(m){let reg=clean(m[1]);return reg.length>=5?{reg,done:false,found:false,customNum:'',notes:m[2].trim()}:null}
- let reg=clean(original);return reg.length>=5?{reg,done:false,found:false,customNum:'',notes:''}:null
+ if(m){let reg=clean(m[1]);return reg.length>=5?{reg,done:false,found:false,customNum:'',notes:m[2].trim(),markedForRemove:false,markedForComplete:false}:null}
+ let reg=clean(original);return reg.length>=5?{reg,done:false,found:false,customNum:'',notes:'',markedForRemove:false,markedForComplete:false}:null
 }
 function buildList(text){
  const seen=new Map();
@@ -161,33 +170,136 @@ function notify(msg,type='info'){let n=$('notify');n.textContent=msg;n.className
 function tone(freqs,type='sine',duration=.42){
  try{let A=window.AudioContext||window.webkitAudioContext,c=new A(),o=c.createOscillator(),g=c.createGain();o.type=type;freqs.forEach((f,i)=>o.frequency.setValueAtTime(f,c.currentTime+i*.12));g.gain.setValueAtTime(.55,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+duration);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+duration)}catch(e){}
 }
+
+// Toggle REMOVE mark — click again to DESELECT
+function toggleRemoveMark(i){
+ if(items[i].done) return notify('Use ✓ in COMPLETED section to restore','info');
+ if(items[i].found) return notify('Cannot mark FOUND — mark PENDING first','bad');
+ items[i].markedForRemove=!items[i].markedForRemove;
+ if(items[i].markedForRemove) items[i].markedForComplete=false;
+ saveData(); render();
+}
+
+// Toggle COMPLETE mark — click again to DESELECT
+function toggleCompleteMark(i){
+ if(items[i].done) return notify('Use ✓ below to restore to PENDING','info');
+ if(items[i].found) return notify('Cannot mark FOUND — mark PENDING first','bad');
+ items[i].markedForComplete=!items[i].markedForComplete;
+ if(items[i].markedForComplete) items[i].markedForRemove=false;
+ saveData(); render();
+}
+
+// Remove all ticked REMOVE items
+function removeMarkedPending(){
+ const marked=items.filter(x=>x.markedForRemove && !x.done && !x.found);
+ if(marked.length===0) return notify('Tick items first to REMOVE','purple');
+ if(!confirm(`Remove ${marked.length} selected item(s)?\nThis cannot be undone.`)) return;
+ items=items.filter(x=>!(x.markedForRemove && !x.done && !x.found));
+ saveData(); render();
+ notify(`✅ Removed ${marked.length} item(s)`, 'found');
+}
+
+// Move all ticked COMPLETE items to DONE section
+function moveMarkedToCompleted(){
+ const marked=items.filter(x=>x.markedForComplete && !x.done && !x.found);
+ if(marked.length===0) return notify('Tick items first to move to COMPLETED','green');
+ marked.forEach(x=>{
+   x.done=true;
+   x.markedForComplete=false;
+   x.markedForRemove=false;
+ });
+ saveData(); render();
+ notify(`✅ ${marked.length} item(s) moved to COMPLETED`, 'found');
+}
+
+// Restore a DONE item back to PENDING
+function restoreToPending(i){
+ if(!items[i].done) return;
+ items[i].done=false;
+ items[i].markedForRemove=false;
+ items[i].markedForComplete=false;
+ saveData(); render();
+ notify('↩️ Restored to PENDING','info');
+}
+
 function render(){
  const f=items.filter(x=>x.found&&!x.done),p=items.filter(x=>!x.found&&!x.done),d=items.filter(x=>x.done);
  $('foundSection').style.display=f.length?'block':'none';
+ 
  const make=(it,type)=>{
-  let i=items.indexOf(it),tag=type==='found'?'FOUND':type==='done'?'DONE':'PENDING';
-  return `<div class="item ${type==='found'?'found':''} ${type==='done'?'done':''}">
-   <div class="check ${type==='done'?'checked':''}" onclick="${type==='done'?`unmark(${i})`:`markDone(${i})`}">${type==='done'?'✓':''}</div>
+  let i=items.indexOf(it),tag,checkClass='check',checkClick='',checkIcon='',itemClass='',badgeClass='';
+  
+  if(type==='done'){
+   // Completed items — click to RESTORE to PENDING
+   checkClass='check done-check';
+   checkIcon='✓';
+   checkClick=`restoreToPending(${i})`;
+   tag='DONE ↩️';
+   badgeClass='bd';
+  }else if(type==='found'){
+   badgeClass='bf';
+   tag='FOUND';
+  }else{
+   // PENDING items — dual tick system
+   if(it.markedForRemove){
+    checkClass='check checked-remove';
+    checkIcon='✗';
+    checkClick=`toggleRemoveMark(${i})`; // click again to UNTICK
+    tag='REMOVE';
+    badgeClass='br';
+    itemClass='can-remove';
+   }else if(it.markedForComplete){
+    checkClass='check checked-complete';
+    checkIcon='✓';
+    checkClick=`toggleCompleteMark(${i})`; // click again to UNTICK
+    tag='MOVE→DONE';
+    badgeClass='bc';
+    itemClass='can-complete';
+   }else{
+    // Not ticked — show both options on click
+    checkClick=`toggleRemoveMark(${i});toggleCompleteMark(${i})`;
+    tag='PENDING';
+    badgeClass='bp';
+   }
+  }
+  
+  return `<div class="item ${type==='found'?'found':''} ${type==='done'?'done':''} ${itemClass}">
+   <div class="${checkClass}" onclick="${checkClick}">${checkIcon}</div>
    <div><div class="reg">${it.reg}</div><div class="meta">${it.notes?escapeHtml(it.notes):'Registration target'}</div></div>
-   <div class="controls"><input class="ref" maxlength="4" inputmode="numeric" placeholder="REF" value="${escapeAttr(it.customNum||'')}" oninput="updateRef(${i},this.value)"><input class="note" placeholder="Note…" value="${escapeAttr(it.notes||'')}" oninput="updateNote(${i},this.value)"><span class="badge ${type==='found'?'bf':type==='done'?'bd':'bp'}">${tag}</span></div>
-  </div>`
+   <div class="controls">
+     <input class="ref" maxlength="4" inputmode="numeric" placeholder="REF" value="${escapeAttr(it.customNum||'')}" oninput="updateRef(${i},this.value)">
+     <input class="note" placeholder="Note…" value="${escapeAttr(it.notes||'')}" oninput="updateNote(${i},this.value)">
+     <span class="badge ${badgeClass}">${tag}</span>
+   </div>
+  </div>`;
  };
+ 
  $('foundList').innerHTML=f.map(x=>make(x,'found')).join('');
  $('pendingList').innerHTML=p.map(x=>make(x,'pending')).join('');
  $('doneList').innerHTML=d.map(x=>make(x,'done')).join('');
- $('foundCount').textContent=f.length;$('pendingCount').textContent=p.length;$('doneCount').textContent=d.length;$('totalCount').textContent=items.length;
- $('foundHeadCount').textContent=f.length;$('pendingHeadCount').textContent=p.length;$('doneHeadCount').textContent=d.length;
+ 
+ $('foundCount').textContent=f.length;
+ $('pendingCount').textContent=p.length;
+ $('doneCount').textContent=d.length;
+ $('totalCount').textContent=items.length;
+ 
+ $('foundHeadCount').textContent=f.length;
+ $('pendingHeadCount').textContent=p.length;
+ $('doneHeadCount').textContent=d.length;
 }
+
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function escapeAttr(s){return escapeHtml(s)}
 function updateRef(i,v){items[i].customNum=v.replace(/\D/g,'').slice(0,4);saveData()}
 function updateNote(i,v){items[i].notes=v.trim();saveData()}
-function markDone(i){items[i].done=true;items[i].found=false;saveData();render()}
+function markDone(i){items[i].done=true;items[i].found=false;items[i].markedForRemove=false;items[i].markedForComplete=false;saveData();render()}
 function unmark(i){items[i].done=false;saveData();render()}
 function looksLikePlate(s){return s.length>=6&&s.length<=8&&/[A-Z]/.test(s)&&/[0-9]/.test(s)}
+
 async function checkFlashSupport(){if(!track)return null;let c=track.getCapabilities();if('torch'in c)return supportMode='torch';if(c.fillLightMode?.includes('continuous'))return supportMode='continuous';if(c.fillLightMode?.includes('flash'))return supportMode='flash';return null}
 async function setTorch(on){if(!track||!supportMode)return false;try{await track.applyConstraints({advanced:[supportMode==='torch'?{torch:on}:{fillLightMode:on?(supportMode==='continuous'?'continuous':'flash'):'off'}]});return true}catch(e){return false}}
 async function toggleTorch(){if(!track)return;torchOn=!torchOn;if(await setTorch(torchOn)){ $('torchBtn').textContent=torchOn?'🔦 TORCH ON':'🔦 TORCH';$('torchBtn').style.opacity=torchOn?'1':'.9'}else{torchOn=!torchOn;$('torchBtn').disabled=true;notify('Browser torch unavailable — use phone torch','bad')}}
+
 async function startScanner(){
  if(!items.length){notify('Paste your registrations and press REBUILD first','bad');return}
  $('scanner').style.display='flex';$('scanStatus').textContent='Requesting rear camera…';$('scanMode').textContent='CONNECTING';
@@ -195,45 +307,82 @@ async function startScanner(){
   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
   $('video').srcObject=stream;track=stream.getVideoTracks()[0];let mode=await checkFlashSupport();
   $('scanMode').textContent=mode?('LED '+mode.toUpperCase()):'LIVE';
-  $('torchBtn').disabled=!mode;$('scanStatus').innerHTML=mode?'Camera ready — centre the registration inside the red frame.':'Camera ready — browser torch unavailable.';
+  $('torchBtn').disabled=!mode;
+  $('scanStatus').innerHTML=mode?'Camera ready — centre the registration inside the red frame.':'Camera ready — browser torch unavailable.';
   scanLoop();
  }catch(e){$('scanStatus').textContent='Camera unavailable. Allow camera permission and try again.';notify('Camera permission required','bad')}
 }
+
 async function stopScanner(){if(torchOn&&track)await setTorch(false);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;track=null;torchOn=false;supportMode=null;scanBusy=false;$('scanner').style.display='none';$('torchBtn').disabled=true;$('torchBtn').textContent='🔦 TORCH'}
+
 async function scanLoop(){
  if(!stream||scanBusy)return;
  const v=$('video'),c=$('canvas');if(!v.videoWidth){setTimeout(scanLoop,300);return}
  scanBusy=true;
- c.width=Math.round(v.videoWidth*.88);c.height=Math.round(v.videoHeight*.28);
- let ctx=c.getContext('2d');ctx.drawImage(v,Math.round(v.videoWidth*.06),Math.round(v.videoHeight*.36),c.width,c.height,0,0,c.width,c.height);
+ c.width=Math.round(v.videoWidth*.88);
+ c.height=Math.round(v.videoHeight*.28);
+ let ctx=c.getContext('2d');
+ ctx.drawImage(v,Math.round(v.videoWidth*.06),Math.round(v.videoHeight*.36),c.width,c.height,0,0,c.width,c.height);
  try{
   let r=await Tesseract.recognize(c,'eng',{logger:()=>{},tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',tessedit_pageseg_mode:7});
   let found=clean(r.data.text);
   if(looksLikePlate(found)){
    let match=items.find(x=>found===x.reg||found.includes(x.reg)||x.reg.includes(found));
    if(match){
-    if(!match.found&&!match.done&&Date.now()-lastHit>2200){lastHit=Date.now();match.found=true;saveData();render();tone([880,1100]);notify('FOUND — '+match.reg,'found');await stopScanner();setTimeout(()=>document.querySelector('.item.found')?.scrollIntoView({behavior:'smooth',block:'center'}),120);return}
-    if((match.found||match.done)&&Date.now()-lastHit>2200){lastHit=Date.now();tone([523,659,784],'triangle',.5);notify('Already processed — '+match.reg,'info')}
+    if(!match.found&&!match.done&&Date.now()-lastHit>2200){
+      lastHit=Date.now();
+      match.found=true;
+      match.markedForRemove=false;
+      match.markedForComplete=false;
+      saveData();render();
+      tone([880,1100]);
+      notify('FOUND — '+match.reg,'found');
+      await stopScanner();
+      setTimeout(()=>document.querySelector('.item.found')?.scrollIntoView({behavior:'smooth',block:'center'}),120);
+      return;
+    }
+    if((match.found||match.done)&&Date.now()-lastHit>2200){
+      lastHit=Date.now();
+      tone([523,659,784],'triangle',.5);
+      notify('Already processed — '+match.reg,'info');
+    }
    }
   }
  }catch(e){}
- scanBusy=false;if(stream)setTimeout(scanLoop,550)
+ scanBusy=false;
+ if(stream)setTimeout(scanLoop,550);
 }
+
 function today(){let d=new Date();return String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+d.getFullYear()}
 function saveFile(){let d={savedAt:new Date().toISOString(),listText:$('regBox').value,items};download(JSON.stringify(d,null,2),`HPC-LAYOUT-SAVED-(${today()}).json`,'application/json');notify('Layout saved','found')}
 function exportText(type){let a=type==='all'?items:type==='completed'?items.filter(x=>x.done):items.filter(x=>!x.done),label=type==='all'?'COMPLETE JOB LIST':type==='completed'?'COMPLETED JOBS':'REMAINING JOBS';let t=`${label}\nDate: ${new Date().toLocaleDateString('en-GB')}\nTotal: ${a.length}\n${'━'.repeat(34)}\n\n`;a.forEach((x,i)=>t+=`${String(i+1).padStart(3,'0')}  ${x.reg}  Ref: ${x.customNum||'----'}  ${x.done?'[DONE]':x.found?'[FOUND]':'[PENDING]'}${x.notes?' Note: '+x.notes:''}\n`);download(t,`HPC-${type.toUpperCase()}-(${today()}).txt`,'text/plain');$('exportModal').classList.remove('show');notify('Export created','found')}
 function download(data,name,type){let b=new Blob([data],{type}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}
 async function restore(file){try{let d=JSON.parse(await file.text());if(!Array.isArray(d.items))throw Error('Invalid layout');items=d.items;$('regBox').value=d.listText||'';saveData();render();$('restoreModal').classList.remove('show');notify('Layout restored — '+items.length+' records','found')}catch(e){notify('Restore failed — invalid file','bad')}}
 function setTheme(m){document.documentElement.setAttribute('data-theme',m);$('themeBtn').textContent=m==='light'?'☀':'☾';localStorage.setItem(THEME_KEY,m)}
+
 $('themeBtn').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
 $('processBtn').onclick=()=>{let t=$('regBox').value;if(!t.trim())return notify('Paste a list first','bad');items=buildList(t);if(!items.length)return notify('No valid registrations found','bad');saveData();render();notify('Board rebuilt — '+items.length+' registrations','found')};
-$('openScanBtn').onclick=$('floatingScanBtn').onclick=startScanner;$('closeScan').onclick=stopScanner;$('torchBtn').onclick=toggleTorch;
-$('clearBtn').onclick=()=>{if(confirm('Reset ALL progress?')){localStorage.removeItem(SAVE_KEY);items=[];$('regBox').value='';render();notify('All data cleared')}}
-$('exportBtn').onclick=()=>$('exportModal').classList.add('show');$('exportClose').onclick=()=>$('exportModal').classList.remove('show');
+$('removeBtn').onclick=removeMarkedPending;
+$('completedBtn').onclick=moveMarkedToCompleted;
+$('openScanBtn').onclick=$('floatingScanBtn').onclick=startScanner;
+$('closeScan').onclick=stopScanner;
+$('torchBtn').onclick=toggleTorch;
+$('clearBtn').onclick=()=>{if(confirm('Reset ALL progress?')){localStorage.removeItem(SAVE_KEY);items=[];$('regBox').value='';render();notify('All data cleared')}};
+$('exportBtn').onclick=()=>$('exportModal').classList.add('show');
+$('exportClose').onclick=()=>$('exportModal').classList.remove('show');
 document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>exportText(b.dataset.type));
-$('saveLayoutBtn').onclick=saveFile;$('restoreLayoutBtn').onclick=()=>$('restoreModal').classList.add('show');$('restoreClose').onclick=()=>$('restoreModal').classList.remove('show');
+$('saveLayoutBtn').onclick=saveFile;
+$('restoreLayoutBtn').onclick=()=>$('restoreModal').classList.add('show');
+$('restoreClose').onclick=()=>$('restoreModal').classList.remove('show');
 $('doRestoreBtn').onclick=()=>{let f=$('restoreFileInput').files[0];if(f)restore(f);else notify('Select a file first','bad')};
+
+window.toggleRemoveMark=toggleRemoveMark;
+window.toggleCompleteMark=toggleCompleteMark;
+window.restoreToPending=restoreToPending;
+window.updateRef=updateRef;
+window.updateNote=updateNote;
+
 window.addEventListener('load',()=>{let t=localStorage.getItem(THEME_KEY);if(t)setTheme(t);loadData();render()});
 </script>
 </body>
-  </html>
+</html>
